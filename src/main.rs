@@ -28,41 +28,35 @@ pub mod error
 
 use error::*;
 
-struct PasswordPolicy<R>
+struct PasswordPolicy
 {
-	range: R,
+	first: usize,
+	second: usize,
 	character: char,
 }
 
-impl<R> From<(R, char)> for PasswordPolicy<R>
+impl From<((usize,usize), char)> for PasswordPolicy
 {
-	fn from(other: (R, char)) -> Self
+	fn from(other: ((usize, usize), char)) -> Self
 	{
 		PasswordPolicy
 		{
-			range: other.0,
+			first: other.0.0 - 1,
+			second: other.0.1 - 1,
 			character: other.1,
 		}
 	}
 }
 
-impl<R> PasswordPolicy<R>
-	where
-		R: std::ops::RangeBounds<usize>
+impl PasswordPolicy
 {
 	fn check<S: AsRef<str>>(&self, s: S) -> bool
 	{
-		let max_cap: usize = match self.range.end_bound()
-		{
-			std::ops::Bound::Included(x) => x + 1,
-			std::ops::Bound::Excluded(x) => *x,
-			std::ops::Bound::Unbounded => s.as_ref().chars().count(),
-		};
-		let count_capped = s.as_ref().chars()
-			.filter(|ch| ch.eq(&self.character))
-			.take(max_cap)
-			.count();
-		self.range.contains(&count_capped)
+		let chars = s.as_ref().chars().collect::<Vec<char>>();
+		let first = chars.get(self.first).map(|&ch| ch == self.character).unwrap_or(false);
+		let second = chars.get(self.second).map(|&ch| ch == self.character).unwrap_or(false);
+
+		first ^ second
 	}
 }
 
@@ -75,17 +69,17 @@ fn main() -> Result<()>
 		.map(|s|
 		{
 			let mut parts = s.split_whitespace();
-			let range = parts.next().ok_or(ErrorKind::ParseError)?;
-			let range = range.split('-').collect::<Vec<_>>();
-			if range.len() != 2 { bail!(ErrorKind::ParseError); }
-			let range = range[0].parse::<usize>()?..=range[1].parse()?;
+			let chars = parts.next().ok_or(ErrorKind::ParseError)?;
+			let chars = chars.split('-').collect::<Vec<_>>();
+			if chars.len() != 2 { bail!(ErrorKind::ParseError); }
+			let chars = (chars[0].parse::<usize>()?, chars[1].parse()?);
 			let ch = parts.next().ok_or(ErrorKind::ParseError)?;
 			let ch = ch.chars().next().ok_or(ErrorKind::ParseError)?;
 			let password = parts.next().ok_or(ErrorKind::ParseError)?;
 			if parts.next() != None { bail!(ErrorKind::ParseError); }
-			Ok((PasswordPolicy::from((range,ch)),password.to_string()))
+			Ok((PasswordPolicy::from((chars,ch)),password.to_string()))
 		})
-		.collect::<Result<Vec<(PasswordPolicy<_>,String)>>>()?;
+		.collect::<Result<Vec<(PasswordPolicy,String)>>>()?;
 
 	let num_valid = pairs.iter()
 		.filter(|(policy,password)| policy.check(password))
