@@ -50,12 +50,18 @@ fn main() -> Result<()>
 		})
 		.collect::<Result<Vec<_>>>()?;
 
-	let trees = lines.iter()
-		.enumerate()
-		.skip(1)
-		.map(|(idx,vec)| (idx * 3 % vec.len(),vec))
-		.filter(|(offset,vec)| vec[*offset])
-		.count();
+	let trees: usize = [(1,1),(3,1),(5,1),(7,1),(1,2)].iter()
+		.map(|&(movex,movey)|
+		{
+			lines.iter()
+				.step_by(movey)
+				.enumerate()
+				.skip(1)
+				.map(|(idx,vec)| (idx * movex % vec.len(),vec))
+				.filter(|(offset,vec)| vec[*offset])
+				.count()
+		})
+		.product();
 
 	println!("{}", trees);
 
