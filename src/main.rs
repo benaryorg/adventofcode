@@ -82,13 +82,21 @@ fn main() -> Result<()>
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
 	let body = http.get("https://adventofcode.com/2020/day/5/input").send()?.text()?;
-	let max_id = body.lines()
+	let seats = body.lines()
 		.map(|line| line.parse::<Seat>())
 		.filter_map(Result::ok)
-		.max_by_key(|seat| seat.id())
-		.ok_or(ErrorKind::NoSolution)?;
+		.map(|seat| seat.id())
+		.collect::<std::collections::BinaryHeap<_>>()
+		.into_sorted_vec();
 
-	println!("{}", max_id.id());
+	for window in seats.windows(2)
+	{
+		if (window[1] - window[0]) > 1
+		{
+			println!("{}", window[0] + 1);
+			break;
+		}
+	}
 
 	Ok(())
 }
