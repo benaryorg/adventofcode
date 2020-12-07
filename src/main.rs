@@ -42,9 +42,24 @@ fn main() -> Result<()>
 		.map(|group|
 		{
 			group.lines()
-				.flat_map(|person| person.chars())
-				.collect::<std::collections::BTreeSet<char>>()
-				.len()
+				.map(|person|
+				{
+					person.chars()
+						.collect::<std::collections::BTreeSet<char>>()
+				})
+				.fold(None,|acc: Option<std::collections::BTreeSet<char>>,elem|
+				{
+					acc
+						.map(|acc|
+						{
+							acc.intersection(&elem)
+								.copied()
+								.collect()
+						})
+						.or(Some(elem))
+				})
+				.map(|set| set.len())
+				.unwrap_or(0)
 		})
 		.sum();
 
