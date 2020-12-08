@@ -33,44 +33,67 @@ pub mod error
 
 use error::*;
 
+enum Instruction
+{
+	Acc(isize),
+	Jmp(isize),
+	Nop,
+}
+
+impl std::str::FromStr for Instruction
+{
+	type Err = Error;
+	fn from_str(input: &str) -> Result<Self>
+	{
+		let parts = input.split_whitespace().take(2).collect::<Vec<_>>();
+		Ok(match (parts[0],parts[1].parse()?)
+		{
+			("jmp",i) => Instruction::Jmp(i),
+			("acc",i) => Instruction::Acc(i),
+			("nop",_) => Instruction::Nop,
+			_ => bail!(ErrorKind::ParseError),
+		})
+	}
+}
+
 fn main() -> Result<()>
 {
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/7/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/8/input").send()?.text()?;
 
-	let map = body.lines()
-		.map(|line|
-		{
-			let idx = line.find(" bags ").ok_or(ErrorKind::ParseError)?;
-			let colour = line.get(..idx).ok_or(ErrorKind::ParseError)?;
-			let rest = line.get((idx+14)..).ok_or(ErrorKind::ParseError)?;
-			let content = rest.strip_suffix('.').ok_or(ErrorKind::ParseError)?.split(", ")
-				.filter(|&s| s != "no other bags")
-				.map(|bag|
-				{
-					let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(ErrorKind::ParseError)?;
-					let count: usize = content.split(' ').next().ok_or(ErrorKind::ParseError)?.parse()?;
-					let colour = content.splitn(2,' ').skip(1).next().ok_or(ErrorKind::ParseError)?;
-					Ok((count,colour))
-				})
-				.collect::<Result<Vec<_>>>()?;
-			Ok((colour,content))
-		})
-		.collect::<Result<std::collections::BTreeMap<_,_>>>()?;
+	let code = body.lines()
+		.map(|line| line.parse::<Instruction>())
+		.collect::<Result<Vec<_>>>()?;
 
-	let mut total = 0;
-	let mut vec = vec![(1,"shiny gold")];
-	while let Some((count,colour)) = vec.pop()
+	let mut acc: isize = 0;
+	let mut pi: usize = 0;
+	let mut set = std::collections::BTreeSet::new();
+
+	loop
 	{
-		total += count;
-		if let Some(bags) = map.get(colour)
+		if !set.insert(pi)
 		{
-			vec.extend(bags.iter().map(|&(cnt,colour)| (cnt * count, colour)));
+			println!("{}", acc);
+			break;
+		}
+		match code[pi as usize]
+		{
+			Instruction::Acc(i) =>
+			{
+				acc += i;
+				pi += 1;
+			},
+			Instruction::Nop =>
+			{
+				pi += 1;
+			},
+			Instruction::Jmp(i) =>
+			{
+				pi = i.saturating_add(pi as isize) as usize;
+			},
 		}
 	}
-
-	println!("{}", total-1);
 
 	Ok(())
 }
