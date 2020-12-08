@@ -59,27 +59,18 @@ fn main() -> Result<()>
 		})
 		.collect::<Result<std::collections::BTreeMap<_,_>>>()?;
 
-	let mut results = vec![];
-
-	for &key in map.keys()
-		.filter(|&&colour| colour != "shiny gold")
+	let mut total = 0;
+	let mut vec = vec![(1,"shiny gold")];
+	while let Some((count,colour)) = vec.pop()
 	{
-		let mut vec = vec![(1,key)];
-		while let Some((_count,colour)) = vec.pop()
+		total += count;
+		if let Some(bags) = map.get(colour)
 		{
-			if colour == "shiny gold"
-			{
-				results.push(key);
-				break;
-			}
-			if let Some(bag) = map.get(colour)
-			{
-				vec.extend(bag);
-			}
+			vec.extend(bags.iter().map(|&(cnt,colour)| (cnt * count, colour)));
 		}
 	}
 
-	println!("{}", results.len());
+	println!("{}", total-1);
 
 	Ok(())
 }
