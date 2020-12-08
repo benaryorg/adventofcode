@@ -37,34 +37,50 @@ fn main() -> Result<()>
 {
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/6/input").send()?.text()?;
-	let answers: usize = body.split("\n\n")
-		.map(|group|
-		{
-			group.lines()
-				.map(|person|
-				{
-					person.chars()
-						.collect::<std::collections::BTreeSet<char>>()
-				})
-				.fold(None,|acc: Option<std::collections::BTreeSet<char>>,elem|
-				{
-					acc
-						.map(|acc|
-						{
-							acc.intersection(&elem)
-								.copied()
-								.collect()
-						})
-						.or(Some(elem))
-				})
-				.map(|set| set.len())
-				.unwrap_or(0)
-		})
-		.sum();
+	let body = http.get("https://adventofcode.com/2020/day/7/input").send()?.text()?;
 
-	println!("{}", answers);
-		
+	let map = body.lines()
+		.map(|line|
+		{
+			let idx = line.find(" bags ").ok_or(ErrorKind::ParseError)?;
+			let colour = line.get(..idx).ok_or(ErrorKind::ParseError)?;
+			let rest = line.get((idx+14)..).ok_or(ErrorKind::ParseError)?;
+			let content = rest.strip_suffix('.').ok_or(ErrorKind::ParseError)?.split(", ")
+				.filter(|&s| s != "no other bags")
+				.map(|bag|
+				{
+					let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(ErrorKind::ParseError)?;
+					let count: usize = content.split(' ').next().ok_or(ErrorKind::ParseError)?.parse()?;
+					let colour = content.splitn(2,' ').skip(1).next().ok_or(ErrorKind::ParseError)?;
+					Ok((count,colour))
+				})
+				.collect::<Result<Vec<_>>>()?;
+			Ok((colour,content))
+		})
+		.collect::<Result<std::collections::BTreeMap<_,_>>>()?;
+
+	let mut results = vec![];
+
+	for &key in map.keys()
+		.filter(|&&colour| colour != "shiny gold")
+	{
+		let mut vec = vec![(1,key)];
+		while let Some((_count,colour)) = vec.pop()
+		{
+			if colour == "shiny gold"
+			{
+				results.push(key);
+				break;
+			}
+			if let Some(bag) = map.get(colour)
+			{
+				vec.extend(bag);
+			}
+		}
+	}
+
+	println!("{}", results.len());
+
 	Ok(())
 }
 
