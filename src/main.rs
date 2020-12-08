@@ -33,11 +33,12 @@ pub mod error
 
 use error::*;
 
+#[derive(Clone,Debug)]
 enum Instruction
 {
 	Acc(isize),
 	Jmp(isize),
-	Nop,
+	Nop(isize),
 }
 
 impl std::str::FromStr for Instruction
@@ -50,7 +51,7 @@ impl std::str::FromStr for Instruction
 		{
 			("jmp",i) => Instruction::Jmp(i),
 			("acc",i) => Instruction::Acc(i),
-			("nop",_) => Instruction::Nop,
+			("nop",i) => Instruction::Nop(i),
 			_ => bail!(ErrorKind::ParseError),
 		})
 	}
@@ -66,35 +67,53 @@ fn main() -> Result<()>
 		.map(|line| line.parse::<Instruction>())
 		.collect::<Result<Vec<_>>>()?;
 
-	let mut acc: isize = 0;
-	let mut pi: usize = 0;
-	let mut set = std::collections::BTreeSet::new();
-
-	loop
+	for (idx,inst) in code.iter().enumerate()
 	{
-		if !set.insert(pi)
+		let mut acc: isize = 0;
+		let mut pi: isize = 0;
+		let mut set = std::collections::BTreeSet::new();
+
+		let inverted = match inst
 		{
-			println!("{}", acc);
-			break;
-		}
-		match code[pi as usize]
+			&Instruction::Nop(i) => Instruction::Jmp(i),
+			&Instruction::Jmp(i) => Instruction::Nop(i),
+			&Instruction::Acc(_) => continue,
+		};
+		let mut code = code.clone();
+		code[idx] = inverted;
+		let code = code;
+
+		loop
 		{
-			Instruction::Acc(i) =>
+			if pi as usize >= code.len()
 			{
-				acc += i;
-				pi += 1;
-			},
-			Instruction::Nop =>
+				println!("{}", acc);
+				return Ok(());
+			}
+			if !set.insert(pi)
 			{
-				pi += 1;
-			},
-			Instruction::Jmp(i) =>
+				break;
+			}
+			match code[pi as usize]
 			{
-				pi = i.saturating_add(pi as isize) as usize;
-			},
+				Instruction::Acc(i) =>
+				{
+					acc += i;
+					pi += 1;
+				},
+				Instruction::Nop(_) =>
+				{
+					pi += 1;
+				},
+				Instruction::Jmp(i) =>
+				{
+					pi += i;
+				},
+			}
+			pi = pi.max(0);
 		}
 	}
 
-	Ok(())
+	bail!(ErrorKind::NoSolution);
 }
 
