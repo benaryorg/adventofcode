@@ -59,58 +59,52 @@ impl std::str::FromStr for Instruction
 
 fn main() -> Result<()>
 {
+	let timer = std::time::Instant::now();
+
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/8/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/9/input").send()?.text()?;
 
-	let code = body.lines()
-		.map(|line| line.parse::<Instruction>())
-		.collect::<Result<Vec<_>>>()?;
+	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
+	let timer = std::time::Instant::now();
+	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 
-	for (idx,inst) in code.iter().enumerate()
+	let numbers = body.lines()
+		.map(|line| Ok(line.parse()?))
+		.collect::<Result<Vec<isize>>>()?;
+
+	let result = *numbers.windows(26)
+		.find(|input|
+		{
+			let (result,haystack) = input.split_last().unwrap();
+			let haystack = haystack.iter().copied().collect::<std::collections::BTreeSet<_>>();
+			haystack.iter()
+				.find(|&needle| haystack.contains(&(result - needle)))
+				.is_none()
+		})
+		.ok_or(ErrorKind::NoSolution)?.last().unwrap();
+
+	for idx in 0..numbers.len()
 	{
-		let mut acc: isize = 0;
-		let mut pi: isize = 0;
-		let mut set = std::collections::BTreeSet::new();
-
-		let inverted = match inst
+		let mut sum = 0;
+		let mut min = numbers[idx];
+		let mut max = numbers[idx];
+		for &i in &numbers[idx..]
 		{
-			&Instruction::Nop(i) => Instruction::Jmp(i),
-			&Instruction::Jmp(i) => Instruction::Nop(i),
-			&Instruction::Acc(_) => continue,
-		};
-		let mut code = code.clone();
-		code[idx] = inverted;
-		let code = code;
+			sum += i;
+			min = min.min(i);
+			max = max.max(i);
 
-		loop
-		{
-			if pi as usize >= code.len()
+			if sum == result && i != result
 			{
-				println!("{}", acc);
+				println!("{}", min + max);
+				println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 				return Ok(());
 			}
-			if !set.insert(pi)
+			if sum > result
 			{
 				break;
 			}
-			match code[pi as usize]
-			{
-				Instruction::Acc(i) =>
-				{
-					acc += i;
-					pi += 1;
-				},
-				Instruction::Nop(_) =>
-				{
-					pi += 1;
-				},
-				Instruction::Jmp(i) =>
-				{
-					pi += i;
-				},
-			}
-			pi = pi.max(0);
 		}
 	}
 
