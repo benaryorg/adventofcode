@@ -69,7 +69,6 @@ fn main() -> Result<()>
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
-	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 
 	let adapters = body.lines()
 		.map(|line| Ok(line.parse()?))
@@ -77,23 +76,48 @@ fn main() -> Result<()>
 
 	let device = adapters.iter().max().ok_or(ErrorKind::NoSolution)? + 3;
 
-	let mut ones = 0;
-	let mut threes = 0;
-	for (before,after) in std::iter::once(&0)
+	let diffs = std::iter::once(&0)
 		.chain(adapters.iter())
 		.zip(adapters.iter().chain(std::iter::once(&device)))
+		.map(|(before,after)| after-before)
+		.collect::<Vec<_>>();
+
+	fn recurse<I>(memoize: &mut std::collections::HashMap<Vec<usize>,usize>, items: I) -> usize
+		where
+			I: IntoIterator<Item=usize>
 	{
-		match after-before
+		let vec = items.into_iter().collect::<Vec<_>>();
+		if let Some(&memo) = memoize.get(&vec.clone())
 		{
-			0 => {},
-			1 => ones += 1,
-			2 => {},
-			3 => threes += 1,
-			_ => bail!(ErrorKind::NoSolution),
+			memo
+		}
+		else
+		{
+			if vec.len() < 2
+			{
+				1
+			}
+			else
+			{
+				let (front,rest) = vec.split_at(2);
+				let recurse_rest = recurse(memoize,std::iter::once(front[1]).chain(rest.into_iter().copied()));
+				let result = recurse_rest + if front.iter().sum::<usize>() <= 3
+				{
+					recurse(memoize,std::iter::once(front[0] + front[1]).chain(rest.into_iter().copied()))
+				}
+				else
+				{
+					0
+				};
+				memoize.insert(vec,result);
+				result
+			}
 		}
 	}
+	let num = recurse(&mut Default::default(),diffs);
 
-	println!("{}", ones*threes);
+	println!("{}", num);
+	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 
 	Ok(())
 }
