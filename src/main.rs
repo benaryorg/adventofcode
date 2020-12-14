@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -5,6 +6,7 @@ extern crate error_chain;
 extern crate regex;
 extern crate reqwest;
 
+#[allow(unused_imports)]
 use regex::Regex;
 
 pub mod error
@@ -63,51 +65,36 @@ fn main() -> Result<()>
 
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/9/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/10/input").send()?.text()?;
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 
-	let numbers = body.lines()
+	let adapters = body.lines()
 		.map(|line| Ok(line.parse()?))
-		.collect::<Result<Vec<isize>>>()?;
+		.collect::<Result<std::collections::BTreeSet<usize>>>()?;
 
-	let result = *numbers.windows(26)
-		.find(|input|
-		{
-			let (result,haystack) = input.split_last().unwrap();
-			let haystack = haystack.iter().copied().collect::<std::collections::BTreeSet<_>>();
-			haystack.iter()
-				.find(|&needle| haystack.contains(&(result - needle)))
-				.is_none()
-		})
-		.ok_or(ErrorKind::NoSolution)?.last().unwrap();
+	let device = adapters.iter().max().ok_or(ErrorKind::NoSolution)? + 3;
 
-	for idx in 0..numbers.len()
+	let mut ones = 0;
+	let mut threes = 0;
+	for (before,after) in std::iter::once(&0)
+		.chain(adapters.iter())
+		.zip(adapters.iter().chain(std::iter::once(&device)))
 	{
-		let mut sum = 0;
-		let mut min = numbers[idx];
-		let mut max = numbers[idx];
-		for &i in &numbers[idx..]
+		match after-before
 		{
-			sum += i;
-			min = min.min(i);
-			max = max.max(i);
-
-			if sum == result && i != result
-			{
-				println!("{}", min + max);
-				println!("done in {:.3}s", timer.elapsed().as_secs_f64());
-				return Ok(());
-			}
-			if sum > result
-			{
-				break;
-			}
+			0 => {},
+			1 => ones += 1,
+			2 => {},
+			3 => threes += 1,
+			_ => bail!(ErrorKind::NoSolution),
 		}
 	}
 
-	bail!(ErrorKind::NoSolution);
+	println!("{}", ones*threes);
+
+	Ok(())
 }
 
