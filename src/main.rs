@@ -58,18 +58,24 @@ impl State
 						.flat_map(|x: isize|
 						{
 							(-1..=1)
-								.map(|y| (x+(i as isize),y+(j as isize)))
+								.map(|y| (x,y))
 								.collect::<Vec<(isize,isize)>>()
 						})
-						.flat_map(|(i,j)|
+						.filter(|&(x,y)| x != 0 || y != 0)
+						.map(|(x,y)|
 						{
-							self.vec.get(i as usize)
-								.and_then(|v| v.get(j as usize))
+							(1..)
+								.map(|f| (x*f+(i as isize),y*f+(j as isize)))
+								.take_while(|&(i,j)| i >= 0 && j >= 0 && i < self.vec.len() as isize && self.vec.get(i as usize).map(|v| j < v.len() as isize).unwrap_or(false))
+								.flat_map(|(i,j)| self.vec.get(i as usize).and_then(|v| v.get(j as usize)))
+								.copied()
+								.find(Option::is_some)
+								.unwrap_or(None)
 						})
 						.filter(|&seat| match seat
 						{
 							None => false,
-							&Some(x) => x,
+							Some(x) => x,
 						})
 						.count();
 					let new = match (current,count)
