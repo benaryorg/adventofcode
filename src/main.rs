@@ -34,66 +34,31 @@ pub mod error
 	}
 }
 
-struct Mask
-{
-	zero: u64,
-	one: u64,
-}
-
-impl Mask
-{
-	fn apply(&self, num: u64) -> Vec<u64>
-	{
-		let base = num | self.one;
-		let floatmask = !(self.one | self.zero) & 0x0000_000f_ffff_ffff;
-		let count = (1 << floatmask.count_ones()) >> 1 as usize;
-		std::iter::repeat(base)
-			.take(count*2)
-			.enumerate()
-			.map(|(idx,mut num)|
-			{
-				let idx = idx as u64;
-				let mut mask_offset = 0;
-				for idx_offset in 0..floatmask.count_ones()
-				{
-					while (1 << (idx_offset + mask_offset)) & floatmask == 0
-					{
-						mask_offset += 1;
-					}
-					num = (num & !(1 << (idx_offset + mask_offset))) | (idx & (1 << idx_offset)) << mask_offset;
-				}
-				num
-			})
-			.collect()
-	}
-}
-
-impl std::str::FromStr for Mask
-{
-	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
-	{
-		let mut zero = 0;
-		let mut one = 0;
-
-		for ch in input.chars()
-		{
-			zero <<= 1;
-			one <<= 1;
-			match ch
-			{
-				'1' => one |= 1,
-				'0' => zero |= 1,
-				'X' => {},
-				_ => bail!(ErrorKind::ParseError),
-			}
-		}
-
-		Ok(Mask { zero, one, })
-	}
-}
-
 use error::*;
+
+#[derive(Clone,Debug)]
+struct Bus
+{
+	offset: u128,
+	step_size: u128,
+}
+
+impl Bus
+{
+	fn new(offset: u128, id: u128) -> Self
+	{
+		Self
+		{
+			offset,
+			step_size: id,
+		}
+	}
+
+	fn contains(&self, number: u128) -> bool
+	{
+		number % self.step_size == 0
+	}
+}
 
 fn main() -> Result<()>
 {
@@ -101,38 +66,53 @@ fn main() -> Result<()>
 
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/14/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/13/input").send()?.text()?;
+	//let body = "foo\n7,13,x,x,59,x,31,19";
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 
-	let result = body.lines()
-		.fold((Default::default(),"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse::<Mask>()?),|(mut acc,mask): (std::collections::BTreeMap<u64,u64>,Mask), next|
+	let mut lines = body.lines();
+	let _ = lines.next().ok_or(ErrorKind::ParseError)?;
+	let mut busses = lines.next()
+		.ok_or(ErrorKind::ParseError)?
+		.split(",")
+		.enumerate()
+		.filter(|&(_,id)| id != "x")
+		.map(|(idx,id)| Ok(Bus::new(idx as u128,id.parse()?)))
+		.collect::<Result<Vec<_>>>()?;
+
+	busses.sort_by_key(|bus| bus.step_size);
+	let mut new_busses = busses.clone();
+
+	let mut output_timer = std::time::Instant::now();
+
+	let mut step_size = 1;
+	let mut base_time = 1;
+	loop
+	{
+		if busses.iter().all(|bus| bus.contains(base_time + bus.offset))
 		{
-			if next.starts_with("mask =")
-			{
-				(acc, next.split("=").nth(1).ok_or(ErrorKind::ParseError).unwrap().trim().parse().unwrap())
-			}
-			else
-			{
-				lazy_static!
-				{
-					static ref RE: Regex = Regex::new(r"\Amem\[(?P<key>\d+)\] = (?P<value>\d+)\z").unwrap();
-				}
-				let captures = RE.captures(next).ok_or(ErrorKind::ParseError).unwrap();
-				let key = captures.name("key").unwrap().as_str().parse().unwrap();
-				let value = captures.name("value").unwrap().as_str().parse().unwrap();
-				for key in mask.apply(key)
-				{
-					acc.insert(key, value);
-				}
-				(acc,mask)
-			}
-		}).0;
+			println!("{}", base_time);
+			println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+			return Ok(());
+		}
 
-	println!("{:?}", result.values().sum::<u64>());
-	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+		while let Some(idx) = new_busses.iter().position(|bus| bus.contains(base_time + bus.offset))
+		{
+			let bus = new_busses.swap_remove(idx);
+			step_size = num::integer::lcm(bus.step_size,step_size);
+		}
 
-	Ok(())
+		base_time += step_size;
+
+		if output_timer.elapsed().as_secs() > 1
+		{
+			println!("step_size: {}", step_size);
+			println!("base_time: {}", base_time);
+			println!("new_busses: {}", new_busses.len());
+			output_timer = std::time::Instant::now();
+		}
+	}
 }
 
