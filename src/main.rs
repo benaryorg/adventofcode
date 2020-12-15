@@ -75,7 +75,7 @@ fn main() -> Result<()>
 
 		Some(next)
 	})
-		.take(2021 - nums.len())
+		.take(30000000 - nums.len() + 1)
 		.last()
 		.ok_or(ErrorKind::NoSolution)?;
 
