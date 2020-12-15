@@ -40,7 +40,8 @@ struct Ship
 {
 	x: isize,
 	y: isize,
-	direction: Direction,
+	way_x: isize,
+	way_y: isize,
 }
 
 impl Ship
@@ -51,7 +52,8 @@ impl Ship
 		{
 			x: 0,
 			y: 0,
-			direction: Direction::East,
+			way_x: 10,
+			way_y: 1,
 		}
 	}
 
@@ -62,11 +64,23 @@ impl Ship
 			Action::Directional(dir,number) =>
 			{
 				let (x,y) = dir.coords();
-				self.x += x * number;
-				self.y += y * number;
+				self.way_x += x * number;
+				self.way_y += y * number;
 			},
-			Action::Forward(number) => self.action(Action::Directional(self.direction, number)),
-			Action::Rotate(_) => self.direction = action.normalize_rotate(self.direction),
+			Action::Forward(number) =>
+			{
+				self.x += self.way_x * number;
+				self.y += self.way_y * number;
+			},
+			Action::Rotate(number) =>
+			{
+				let times = (number + 4) % 4;
+				for _ in 0..times
+				{
+					std::mem::swap(&mut self.way_x, &mut self.way_y);
+					self.way_y = -self.way_y;
+				}
+			}
 		}
 	}
 
@@ -108,34 +122,6 @@ enum Action
 	Rotate(isize),
 }
 
-impl Action
-{
-	fn normalize_rotate(self,direction: Direction) -> Direction
-	{
-		match self
-		{
-			Action::Rotate(by) =>
-			{
-				match ((by + match direction
-					{
-						Direction::North => 0,
-						Direction::East => 90,
-						Direction::South => 180,
-						Direction::West => 270,
-					}) % 360 + 360) % 360
-				{
-					0 => Direction::North,
-					90 => Direction::East,
-					180 => Direction::South,
-					270 => Direction::West,
-					_ => unreachable!(),
-				}
-			},
-			_ => panic!("rotating something not a Rotate"),
-		}
-	}
-}
-
 impl std::str::FromStr for Action
 {
 	type Err = Error;
@@ -155,8 +141,8 @@ impl std::str::FromStr for Action
 			Some('S') => Directional(South,number),
 			Some('W') => Directional(West,number),
 			Some('F') => Forward(number),
-			Some('L') => Rotate(-number),
-			Some('R') => Rotate(number),
+			Some('L') => Rotate(-number/90%4),
+			Some('R') => Rotate(number/90%4),
 			_ => bail!(ErrorKind::ParseError),
 		})
 	}
