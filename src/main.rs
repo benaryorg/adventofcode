@@ -35,26 +35,94 @@ pub mod error
 
 use error::*;
 
-#[derive(Clone,Debug)]
-enum Instruction
+#[derive(Clone,Debug,Eq,PartialEq)]
+struct State
 {
-	Acc(isize),
-	Jmp(isize),
-	Nop(isize),
+	vec: Vec<Vec<Option<bool>>>,
 }
 
-impl std::str::FromStr for Instruction
+impl State
+{
+	fn step(&self) -> Self
+	{
+		let mut outer = Vec::new();
+		for i in 0..self.vec.len()
+		{
+			let mut inner = Vec::new();
+
+			for j in 0..self.vec[i].len()
+			{
+				if let &Some(current) = self.vec.get(i as usize).and_then(|v| v.get(j as usize)).unwrap()
+				{
+					let count = (-1..=1)
+						.flat_map(|x: isize|
+						{
+							(-1..=1)
+								.map(|y| (x+(i as isize),y+(j as isize)))
+								.collect::<Vec<(isize,isize)>>()
+						})
+						.flat_map(|(i,j)|
+						{
+							self.vec.get(i as usize)
+								.and_then(|v| v.get(j as usize))
+						})
+						.filter(|&seat| match seat
+						{
+							None => false,
+							&Some(x) => x,
+						})
+						.count();
+					let new = match (current,count)
+					{
+						(false, 0) => true,
+						(true, 5..=10) => false,
+						(x,_) => x,
+					};
+					inner.push(Some(new));
+				}
+				else
+				{
+					inner.push(None);
+					continue;
+				}
+			}
+			outer.push(inner);
+		}
+		State
+		{
+			vec: outer,
+		}
+	}
+
+	fn count(&self) -> usize
+	{
+		self.vec.iter().map(|vec| vec.iter().filter(|opt| opt.unwrap_or(false)).count()).sum()
+	}
+}
+
+impl std::str::FromStr for State
 {
 	type Err = Error;
 	fn from_str(input: &str) -> Result<Self>
 	{
-		let parts = input.split_whitespace().take(2).collect::<Vec<_>>();
-		Ok(match (parts[0],parts[1].parse()?)
+		let vec = input.lines()
+			.map(|line|
+			{
+				line.chars()
+					.map(|ch| Ok(match ch
+					{
+						'.' => None,
+						'L' => Some(false),
+						'#' => Some(true),
+						_ => bail!(ErrorKind::ParseError),
+					}))
+					.collect::<Result<Vec<_>>>()
+			})
+			.collect::<Result<Vec<Vec<_>>>>()?;
+
+		Ok(State
 		{
-			("jmp",i) => Instruction::Jmp(i),
-			("acc",i) => Instruction::Acc(i),
-			("nop",i) => Instruction::Nop(i),
-			_ => bail!(ErrorKind::ParseError),
+			vec,
 		})
 	}
 }
@@ -65,60 +133,26 @@ fn main() -> Result<()>
 
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/10/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/11/input").send()?.text()?;
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 
-	let adapters = body.lines()
-		.map(|line| Ok(line.parse()?))
-		.collect::<Result<std::collections::BTreeSet<usize>>>()?;
+	let mut state = body.parse::<State>()?;
 
-	let device = adapters.iter().max().ok_or(ErrorKind::NoSolution)? + 3;
-
-	let diffs = std::iter::once(&0)
-		.chain(adapters.iter())
-		.zip(adapters.iter().chain(std::iter::once(&device)))
-		.map(|(before,after)| after-before)
-		.collect::<Vec<_>>();
-
-	fn recurse<I>(memoize: &mut std::collections::HashMap<Vec<usize>,usize>, items: I) -> usize
-		where
-			I: IntoIterator<Item=usize>
+	loop
 	{
-		let vec = items.into_iter().collect::<Vec<_>>();
-		if let Some(&memo) = memoize.get(&vec.clone())
+		let new = state.step();
+		if new == state
 		{
-			memo
+			println!("{}", state.count());
+			println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+			return Ok(());
 		}
 		else
 		{
-			if vec.len() < 2
-			{
-				1
-			}
-			else
-			{
-				let (front,rest) = vec.split_at(2);
-				let recurse_rest = recurse(memoize,std::iter::once(front[1]).chain(rest.into_iter().copied()));
-				let result = recurse_rest + if front.iter().sum::<usize>() <= 3
-				{
-					recurse(memoize,std::iter::once(front[0] + front[1]).chain(rest.into_iter().copied()))
-				}
-				else
-				{
-					0
-				};
-				memoize.insert(vec,result);
-				result
-			}
+			state = new;
 		}
 	}
-	let num = recurse(&mut Default::default(),diffs);
-
-	println!("{}", num);
-	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
-
-	Ok(())
 }
 
