@@ -42,9 +42,29 @@ struct Mask
 
 impl Mask
 {
-	fn apply(&self, num: u64) -> u64
+	fn apply(&self, num: u64) -> Vec<u64>
 	{
-		(num | self.one) & !self.zero
+		let base = num | self.one;
+		let floatmask = !(self.one | self.zero) & 0x0000_000f_ffff_ffff;
+		let count = (1 << floatmask.count_ones()) >> 1 as usize;
+		std::iter::repeat(base)
+			.take(count*2)
+			.enumerate()
+			.map(|(idx,mut num)|
+			{
+				let idx = idx as u64;
+				let mut mask_offset = 0;
+				for idx_offset in 0..floatmask.count_ones()
+				{
+					while (1 << (idx_offset + mask_offset)) & floatmask == 0
+					{
+						mask_offset += 1;
+					}
+					num = (num & !(1 << (idx_offset + mask_offset))) | (idx & (1 << idx_offset)) << mask_offset;
+				}
+				num
+			})
+			.collect()
 	}
 }
 
@@ -87,7 +107,7 @@ fn main() -> Result<()>
 	let timer = std::time::Instant::now();
 
 	let result = body.lines()
-		.fold((Default::default(),"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse::<Mask>()?),|(mut acc,mask): (std::collections::BTreeMap<usize,u64>,Mask), next|
+		.fold((Default::default(),"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse::<Mask>()?),|(mut acc,mask): (std::collections::BTreeMap<u64,u64>,Mask), next|
 		{
 			if next.starts_with("mask =")
 			{
@@ -100,7 +120,12 @@ fn main() -> Result<()>
 					static ref RE: Regex = Regex::new(r"\Amem\[(?P<key>\d+)\] = (?P<value>\d+)\z").unwrap();
 				}
 				let captures = RE.captures(next).ok_or(ErrorKind::ParseError).unwrap();
-				acc.insert(captures.name("key").unwrap().as_str().parse().unwrap(),mask.apply(captures.name("value").unwrap().as_str().parse().unwrap()));
+				let key = captures.name("key").unwrap().as_str().parse().unwrap();
+				let value = captures.name("value").unwrap().as_str().parse().unwrap();
+				for key in mask.apply(key)
+				{
+					acc.insert(key, value);
+				}
 				(acc,mask)
 			}
 		}).0;
