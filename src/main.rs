@@ -36,102 +36,133 @@ pub mod error
 use error::*;
 
 #[derive(Clone,Debug,Eq,PartialEq)]
-struct State
+struct Ship
 {
-	vec: Vec<Vec<Option<bool>>>,
+	x: isize,
+	y: isize,
+	direction: Direction,
 }
 
-impl State
+impl Ship
 {
-	fn step(&self) -> Self
+	fn new() -> Self
 	{
-		let mut outer = Vec::new();
-		for i in 0..self.vec.len()
+		Self
 		{
-			let mut inner = Vec::new();
+			x: 0,
+			y: 0,
+			direction: Direction::East,
+		}
+	}
 
-			for j in 0..self.vec[i].len()
+	fn action(&mut self, action: Action)
+	{
+		match action
+		{
+			Action::Directional(dir,number) =>
 			{
-				if let &Some(current) = self.vec.get(i as usize).and_then(|v| v.get(j as usize)).unwrap()
-				{
-					let count = (-1..=1)
-						.flat_map(|x: isize|
-						{
-							(-1..=1)
-								.map(|y| (x,y))
-								.collect::<Vec<(isize,isize)>>()
-						})
-						.filter(|&(x,y)| x != 0 || y != 0)
-						.map(|(x,y)|
-						{
-							(1..)
-								.map(|f| (x*f+(i as isize),y*f+(j as isize)))
-								.take_while(|&(i,j)| i >= 0 && j >= 0 && i < self.vec.len() as isize && self.vec.get(i as usize).map(|v| j < v.len() as isize).unwrap_or(false))
-								.flat_map(|(i,j)| self.vec.get(i as usize).and_then(|v| v.get(j as usize)))
-								.copied()
-								.find(Option::is_some)
-								.unwrap_or(None)
-						})
-						.filter(|&seat| match seat
-						{
-							None => false,
-							Some(x) => x,
-						})
-						.count();
-					let new = match (current,count)
-					{
-						(false, 0) => true,
-						(true, 5..=10) => false,
-						(x,_) => x,
-					};
-					inner.push(Some(new));
-				}
-				else
-				{
-					inner.push(None);
-					continue;
-				}
-			}
-			outer.push(inner);
-		}
-		State
-		{
-			vec: outer,
+				let (x,y) = dir.coords();
+				self.x += x * number;
+				self.y += y * number;
+			},
+			Action::Forward(number) => self.action(Action::Directional(self.direction, number)),
+			Action::Rotate(_) => self.direction = action.normalize_rotate(self.direction),
 		}
 	}
 
-	fn count(&self) -> usize
+	fn distance(&self) -> usize
 	{
-		self.vec.iter().map(|vec| vec.iter().filter(|opt| opt.unwrap_or(false)).count()).sum()
+		self.x.abs() as usize + self.y.abs() as usize
 	}
 }
 
-impl std::str::FromStr for State
+#[derive(Copy,Clone,Debug,Eq,PartialEq)]
+enum Direction
+{
+	North,
+	East,
+	West,
+	South,
+}
+
+impl Direction
+{
+	fn coords(&self) -> (isize,isize)
+	{
+		use Direction::*;
+		match self
+		{
+			North => (0,1),
+			East => (1,0),
+			South => (0,-1),
+			West => (-1,0),
+		}
+	}
+}
+
+#[derive(Clone,Debug,Eq,PartialEq)]
+enum Action
+{
+	Directional(Direction,isize),
+	Forward(isize),
+	Rotate(isize),
+}
+
+impl Action
+{
+	fn normalize_rotate(self,direction: Direction) -> Direction
+	{
+		match self
+		{
+			Action::Rotate(by) =>
+			{
+				match ((by + match direction
+					{
+						Direction::North => 0,
+						Direction::East => 90,
+						Direction::South => 180,
+						Direction::West => 270,
+					}) % 360 + 360) % 360
+				{
+					0 => Direction::North,
+					90 => Direction::East,
+					180 => Direction::South,
+					270 => Direction::West,
+					_ => unreachable!(),
+				}
+			},
+			_ => panic!("rotating something not a Rotate"),
+		}
+	}
+}
+
+impl std::str::FromStr for Action
 {
 	type Err = Error;
 	fn from_str(input: &str) -> Result<Self>
 	{
-		let vec = input.lines()
-			.map(|line|
-			{
-				line.chars()
-					.map(|ch| Ok(match ch
-					{
-						'.' => None,
-						'L' => Some(false),
-						'#' => Some(true),
-						_ => bail!(ErrorKind::ParseError),
-					}))
-					.collect::<Result<Vec<_>>>()
-			})
-			.collect::<Result<Vec<Vec<_>>>>()?;
+		use Direction::*;
+		use Action::*;
 
-		Ok(State
+		let mut chars = input.chars();
+		let ch = chars.next();
+		let number = chars.collect::<String>().parse()?;
+
+		Ok(match ch
 		{
-			vec,
+			Some('N') => Directional(North,number),
+			Some('E') => Directional(East,number),
+			Some('S') => Directional(South,number),
+			Some('W') => Directional(West,number),
+			Some('F') => Forward(number),
+			Some('L') => Rotate(-number),
+			Some('R') => Rotate(number),
+			_ => bail!(ErrorKind::ParseError),
 		})
 	}
 }
+
+
 
 fn main() -> Result<()>
 {
@@ -139,26 +170,24 @@ fn main() -> Result<()>
 
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/11/input").send()?.text()?;
+	let body = http.get("https://adventofcode.com/2020/day/12/input").send()?.text()?;
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 
-	let mut state = body.parse::<State>()?;
+	let mut ship = Ship::new();
 
-	loop
+	let actions = body.lines()
+		.map(|line| line.parse())
+		.collect::<Result<Vec<Action>>>()?;
+
+	for action in actions
 	{
-		let new = state.step();
-		if new == state
-		{
-			println!("{}", state.count());
-			println!("done in {:.3}s", timer.elapsed().as_secs_f64());
-			return Ok(());
-		}
-		else
-		{
-			state = new;
-		}
+		ship.action(action);
 	}
+
+	println!("{}", ship.distance());
+	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+	Ok(())
 }
 
