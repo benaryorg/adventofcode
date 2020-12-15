@@ -34,52 +34,78 @@ pub mod error
 	}
 }
 
+struct Mask
+{
+	zero: u64,
+	one: u64,
+}
+
+impl Mask
+{
+	fn apply(&self, num: u64) -> u64
+	{
+		(num | self.one) & !self.zero
+	}
+}
+
+impl std::str::FromStr for Mask
+{
+	type Err = Error;
+	fn from_str(input: &str) -> Result<Self>
+	{
+		let mut zero = 0;
+		let mut one = 0;
+
+		for ch in input.chars()
+		{
+			zero <<= 1;
+			one <<= 1;
+			match ch
+			{
+				'1' => one |= 1,
+				'0' => zero |= 1,
+				'X' => {},
+				_ => bail!(ErrorKind::ParseError),
+			}
+		}
+
+		Ok(Mask { zero, one, })
+	}
+}
+
 use error::*;
 
 fn main() -> Result<()>
 {
 	let timer = std::time::Instant::now();
 
-	//let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
-	//let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = "9,19,1,6,0,5,4";
+	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
+	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
+	let body = http.get("https://adventofcode.com/2020/day/14/input").send()?.text()?;
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 
-	let nums = body.split(",")
-		.map(|num| Ok(num.parse::<usize>()?))
-		.collect::<Result<Vec<_>>>()?;
-
-	let mut map = nums.iter()
-		.copied()
-		.enumerate()
-		.map(|(idx,num)| (num,idx+1))
-		.take(nums.len() - 1)
-		.collect::<std::collections::BTreeMap<_,_>>();
-	
-	let next = *nums.last().ok_or(ErrorKind::NoSolution)?;
-	let mut turn = nums.len();
-
-	let result = std::iter::successors(Some(next),|&last|
-	{
-		let mut next = 0;
-		map.entry(last)
-			.and_modify(|atime|
+	let result = body.lines()
+		.fold((Default::default(),"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX".parse::<Mask>()?),|(mut acc,mask): (std::collections::BTreeMap<usize,u64>,Mask), next|
+		{
+			if next.starts_with("mask =")
 			{
-				next = turn - *atime;
-				*atime = turn;
-			})
-			.or_insert(turn);
-		turn += 1;
+				(acc, next.split("=").nth(1).ok_or(ErrorKind::ParseError).unwrap().trim().parse().unwrap())
+			}
+			else
+			{
+				lazy_static!
+				{
+					static ref RE: Regex = Regex::new(r"\Amem\[(?P<key>\d+)\] = (?P<value>\d+)\z").unwrap();
+				}
+				let captures = RE.captures(next).ok_or(ErrorKind::ParseError).unwrap();
+				acc.insert(captures.name("key").unwrap().as_str().parse().unwrap(),mask.apply(captures.name("value").unwrap().as_str().parse().unwrap()));
+				(acc,mask)
+			}
+		}).0;
 
-		Some(next)
-	})
-		.take(30000000 - nums.len() + 1)
-		.last()
-		.ok_or(ErrorKind::NoSolution)?;
-
-	println!("{}", result);
+	println!("{:?}", result.values().sum::<u64>());
 	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 
 	Ok(())
