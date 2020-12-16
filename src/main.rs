@@ -37,26 +37,52 @@ pub mod error
 use error::*;
 
 #[derive(Clone,Debug)]
-struct Bus
+struct Rule
 {
-	offset: u128,
-	step_size: u128,
+	ranges: Vec<std::ops::RangeInclusive<usize>>,
 }
 
-impl Bus
+impl Rule
 {
-	fn new(offset: u128, id: u128) -> Self
+	fn validate(&self, number: usize) -> bool
 	{
-		Self
-		{
-			offset,
-			step_size: id,
-		}
+		self.ranges.iter().any(|range| range.contains(&number))
 	}
+}
 
-	fn contains(&self, number: u128) -> bool
+impl std::str::FromStr for Rule
+{
+	type Err = Error;
+	fn from_str(input: &str) -> Result<Self>
 	{
-		number % self.step_size == 0
+		let ranges = input.split(" or ")
+			.map(|string|
+			{
+				string.split('-')
+					.map(|i| Ok(i.parse()?))
+					.collect::<Result<Vec<usize>>>()
+					.and_then(|vec|
+					{
+						if vec.len() != 2
+						{
+							bail!(ErrorKind::ParseError);
+						}
+						Ok(vec[0]..=vec[1])
+					})
+			})
+			.collect::<Result<_>>()?;
+		Ok(Self { ranges, })
+	}
+}
+
+struct Ticket(Vec<usize>);
+
+impl std::str::FromStr for Ticket
+{
+	type Err = Error;
+	fn from_str(input: &str) -> Result<Self>
+	{
+		Ok(Ticket(input.split(',').map(|i| Ok(i.parse()?)).collect::<Result<_>>()?))
 	}
 }
 
@@ -66,53 +92,35 @@ fn main() -> Result<()>
 
 	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
 	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/13/input").send()?.text()?;
-	//let body = "foo\n7,13,x,x,59,x,31,19";
+	let body = http.get("https://adventofcode.com/2020/day/16/input").send()?.text()?;
 
 	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 	let timer = std::time::Instant::now();
 
-	let mut lines = body.lines();
-	let _ = lines.next().ok_or(ErrorKind::ParseError)?;
-	let mut busses = lines.next()
-		.ok_or(ErrorKind::ParseError)?
-		.split(",")
-		.enumerate()
-		.filter(|&(_,id)| id != "x")
-		.map(|(idx,id)| Ok(Bus::new(idx as u128,id.parse()?)))
-		.collect::<Result<Vec<_>>>()?;
+	let mut parts = body.split("\n\n");
 
-	busses.sort_by_key(|bus| bus.step_size);
-	let mut new_busses = busses.clone();
-
-	let mut output_timer = std::time::Instant::now();
-
-	let mut step_size = 1;
-	let mut base_time = 1;
-	loop
-	{
-		if busses.iter().all(|bus| bus.contains(base_time + bus.offset))
+	let rules = parts.next().ok_or(ErrorKind::ParseError)?.lines()
+		.map(|line|
 		{
-			println!("{}", base_time);
-			println!("done in {:.3}s", timer.elapsed().as_secs_f64());
-			return Ok(());
-		}
+			let mut split = line.splitn(2,": ");
+			let name = split.next().ok_or(ErrorKind::ParseError)?;
+			let rule = split.next().ok_or(ErrorKind::ParseError)?.parse::<Rule>()?;
+			Ok((name,rule))
+		})
+		.collect::<Result<std::collections::HashMap<_,_>>>()?;
 
-		while let Some(idx) = new_busses.iter().position(|bus| bus.contains(base_time + bus.offset))
-		{
-			let bus = new_busses.swap_remove(idx);
-			step_size = num::integer::lcm(bus.step_size,step_size);
-		}
+	let _my_ticket = parts.next().ok_or(ErrorKind::ParseError)?.lines().nth(1).ok_or(ErrorKind::ParseError)?;
 
-		base_time += step_size;
+	let tickets = parts.next().ok_or(ErrorKind::ParseError)?.lines().skip(1)
+		.map(|line| Ok(line.parse::<Ticket>()?))
+		.collect::<Result<Vec<Ticket>>>()?;
 
-		if output_timer.elapsed().as_secs() > 1
-		{
-			println!("step_size: {}", step_size);
-			println!("base_time: {}", base_time);
-			println!("new_busses: {}", new_busses.len());
-			output_timer = std::time::Instant::now();
-		}
-	}
+	let sum: usize = tickets.iter()
+		.flat_map(|ticket| ticket.0.iter().copied().filter(|&num| !rules.values().any(|rule| rule.validate(num))))
+		.sum();
+
+	println!("{}", sum);
+	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+	Ok(())
 }
 
