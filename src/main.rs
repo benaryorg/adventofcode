@@ -109,17 +109,56 @@ fn main() -> Result<()>
 		})
 		.collect::<Result<std::collections::HashMap<_,_>>>()?;
 
-	let _my_ticket = parts.next().ok_or(ErrorKind::ParseError)?.lines().nth(1).ok_or(ErrorKind::ParseError)?;
+	let my_ticket = parts.next().ok_or(ErrorKind::ParseError)?.lines().nth(1).ok_or(ErrorKind::ParseError)?.parse::<Ticket>()?;
 
 	let tickets = parts.next().ok_or(ErrorKind::ParseError)?.lines().skip(1)
 		.map(|line| Ok(line.parse::<Ticket>()?))
-		.collect::<Result<Vec<Ticket>>>()?;
+		.collect::<Result<Vec<Ticket>>>()?
+		.into_iter()
+		.filter(|ticket| ticket.0.iter().all(|&num| rules.values().any(|rule| rule.validate(num))))
+		.collect::<Vec<_>>();
 
-	let sum: usize = tickets.iter()
-		.flat_map(|ticket| ticket.0.iter().copied().filter(|&num| !rules.values().any(|rule| rule.validate(num))))
-		.sum();
+	let mut possibilities = rules.iter()
+		.flat_map(|kv|
+		{
+			(0..rules.len())
+				.map(
+				{
+					let kv = kv.clone();
+					move |i| (i,kv.clone())
+				})
+		})
+		.filter(|&(idx,(_,rule))| tickets.iter().all(|ticket| ticket.0.get(idx).map(|&value| rule.validate(value)).unwrap_or(false)))
+		.map(|(idx,(name,_))| (name,idx))
+		.collect::<Vec<_>>();
 
-	println!("{}", sum);
+	let mut mapping = std::collections::HashMap::new();
+
+	loop
+	{
+		if possibilities.is_empty()
+		{
+			break;
+		}
+		let map = possibilities.iter().map(|(_,idx)| idx).copied()
+			.fold(std::collections::BTreeMap::<usize,usize>::new(), |mut map, value|
+			{
+				map.entry(value)
+					.and_modify(|value| *value += 1)
+					.or_insert(1);
+				map
+			});
+		for (key,_) in map.into_iter().filter(|&(_,value)| value == 1)
+		{
+			let (name,_) = possibilities.iter().cloned().find(|(_,idx)| *idx == key).unwrap();
+			mapping.insert(name, key);
+			possibilities.retain(|e| e.1 != key && e.0 != name);
+
+			println!("{}: {}", name, key);
+		}
+	}
+
+	println!("{}", mapping.into_iter().filter(|(name,_)| name.starts_with("departure")).map(|(_,idx)| Ok(my_ticket.0.get(idx).ok_or(ErrorKind::ParseError)?)).collect::<Result<Vec<_>>>()?.into_iter().product::<usize>());
 	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
 	Ok(())
 }
