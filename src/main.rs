@@ -36,7 +36,7 @@ pub mod error
 
 use error::*;
 
-fn neighbours(coords: (isize,isize,isize)) -> Vec<(isize,isize,isize)>
+fn neighbours(coords: (isize,isize,isize,isize)) -> Vec<(isize,isize,isize,isize)>
 {
 	(-1..=1)
 		.flat_map(move |x|
@@ -45,17 +45,21 @@ fn neighbours(coords: (isize,isize,isize)) -> Vec<(isize,isize,isize)>
 				.flat_map(move |y|
 				{
 					(-1..=1)
-						.flat_map(move |z|
-						{
-							if x == 0 && y == 0 && z == 0
+					.flat_map(move |z|
+					{
+						(-1..=1)
+							.flat_map(move |w|
 							{
-								None
-							}
-							else
-							{
-								Some((x+coords.0, y+coords.1, z+coords.2))
-							}
-						})
+								if x == 0 && y == 0 && z == 0 && w == 0
+								{
+									None
+								}
+								else
+								{
+									Some((x+coords.0, y+coords.1, z+coords.2, w+coords.3))
+								}
+							})
+					})
 				})
 		})
 		.collect()
@@ -74,7 +78,7 @@ fn main() -> Result<()>
 
 	let set = body.lines()
 		.enumerate()
-		.flat_map(|(line_idx,line)| line.chars().enumerate().filter(|&(_,ch)| ch == '#').map(move |(ch_idx,_)| (0, line_idx as isize, ch_idx as isize)))
+		.flat_map(|(line_idx,line)| line.chars().enumerate().filter(|&(_,ch)| ch == '#').map(move |(ch_idx,_)| (line_idx as isize, ch_idx as isize, 0, 0)))
 		.collect::<std::collections::HashSet<_>>();
 
 	let count = std::iter::successors(Some(set),|set|
@@ -82,6 +86,8 @@ fn main() -> Result<()>
 		Some(set.iter()
 			.copied()
 			.flat_map(neighbours)
+			.collect::<std::collections::HashSet<_>>()
+			.into_iter()
 			.filter(|&coords|
 			{
 				let count = neighbours(coords)
