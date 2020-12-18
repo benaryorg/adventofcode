@@ -3,6 +3,7 @@
 extern crate lazy_static;
 #[macro_use]
 extern crate error_chain;
+extern crate clap;
 extern crate num;
 extern crate regex;
 extern crate reqwest;
@@ -30,89 +31,61 @@ pub mod error
 		{
 			NoSolution {}
 			ParseError {}
+			HttpError {}
 		}
 	}
 }
 
 use error::*;
 
-fn neighbours(coords: (isize,isize,isize,isize)) -> Vec<(isize,isize,isize,isize)>
-{
-	(-1..=1)
-		.flat_map(move |x|
-		{
-			(-1..=1)
-				.flat_map(move |y|
-				{
-					(-1..=1)
-					.flat_map(move |z|
-					{
-						(-1..=1)
-							.flat_map(move |w|
-							{
-								if x == 0 && y == 0 && z == 0 && w == 0
-								{
-									None
-								}
-								else
-								{
-									Some((x+coords.0, y+coords.1, z+coords.2, w+coords.3))
-								}
-							})
-					})
-				})
-		})
-		.collect()
-}
+pub mod solution;
+
+use solution::InputParser;
 
 fn main() -> Result<()>
 {
+	let subcommands: std::collections::HashMap<_,_> = solution::y2020::parsers().into_iter()
+		.map(|command|
+		{
+			(InputParser::usage(command.as_ref()).get_name().to_owned(), command)
+		})
+		.collect();
+
+	let matches = clap::App::new("adventofcode")
+		.version("0.0.0")
+		.author("benaryorg <binary@benary.org>")
+		.about("Crunches Numbers for https://adventofcode.com")
+		.setting(clap::AppSettings::SubcommandRequiredElseHelp)
+		.subcommands(subcommands.values().map(|command| command.usage()))
+		.get_matches();
+
+	let (command, command_matches) = matches.subcommand();
+	let command = subcommands.get(command).unwrap();
 	let timer = std::time::Instant::now();
-
-	let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
-	let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-	let body = http.get("https://adventofcode.com/2020/day/17/input").send()?.text()?;
-
-	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
-	let timer = std::time::Instant::now();
-
-	let set = body.lines()
-		.enumerate()
-		.flat_map(|(line_idx,line)| line.chars().enumerate().filter(|&(_,ch)| ch == '#').map(move |(ch_idx,_)| (line_idx as isize, ch_idx as isize, 0, 0)))
-		.collect::<std::collections::HashSet<_>>();
-
-	let count = std::iter::successors(Some(set),|set|
-	{
-		Some(set.iter()
-			.copied()
-			.flat_map(neighbours)
-			.collect::<std::collections::HashSet<_>>()
-			.into_iter()
-			.filter(|&coords|
+	let input = command.input_url()
+		.map(|url| -> Result<String>
+		{
+			// TODO: use arguments for cookie
+			let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
+			let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
+			let response = http.get(url).send()?;
+			if !response.status().is_success()
 			{
-				let count = neighbours(coords)
-					.into_iter()
-					.filter(|coords| set.contains(coords))
-					.take(4)
-					.count();
-				let current = set.contains(&coords);
+				bail!(ErrorKind::HttpError);
+			}
+			Ok(response.text()?)
+		})
+		.transpose()?;
+	
+	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 
-				match (current,count)
-				{
-					(true,2) => true,
-					(true,3) => true,
-					(false,3) => true,
-					_ => false,
-				}
-			})
-			.collect())
-	})
-		.nth(6)
-		.ok_or(ErrorKind::NoSolution)?
-		.len();
+	let solution = command.parse(input, command_matches.expect("cannot fail due to SubCommandRequiredElseHelp"));
 
-	println!("{}", count);
+	let timer = std::time::Instant::now();
+	let result = solution.solve()?;
 	println!("done in {:.3}s", timer.elapsed().as_secs_f64());
+	println!("{}", result);
+
 	Ok(())
 }
 
