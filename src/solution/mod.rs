@@ -76,21 +76,6 @@ impl<'a> InputParser<'a> for (usize, usize, usize, Box<dyn Fn(Option<String>) ->
 	}
 }
 
-mod helper
-{
-	/// Fuck this casting magic!
-	pub fn coerce_parser_input<'a,F,S>(id: (usize, usize, usize), func: F) -> Box<dyn super::InputParser<'a>>
-		where
-			F: Fn(Option<String>) -> S + 'static,
-			S: super::Solution + 'static,
-	{
-		Box::new((id.0,id.1,id.2,Box::new(move |input: Option<String>| -> Box<dyn super::Solution>
-		{
-			Box::new(func(input)) as Box<dyn super::Solution>
-		}) as Box<dyn Fn(Option<String>) -> Box<dyn super::Solution>>))
-	}
-}
-
 pub trait Solution
 {
 	fn solve(&self) -> Result<String>;
