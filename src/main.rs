@@ -1,49 +1,20 @@
-#[allow(unused_imports)]
-#[macro_use]
-extern crate lazy_static;
 #[macro_use]
 extern crate error_chain;
-extern crate clap;
-extern crate num;
-extern crate regex;
-extern crate reqwest;
 
-#[allow(unused_imports)]
-use regex::Regex;
-
-pub mod error
+use adventofcode::
 {
-	error_chain!
+	error::*,
+	solution::
 	{
-		links
-		{
-		}
-
-		foreign_links
-		{
-			Io(::std::io::Error);
-			Parse(::std::string::ParseError);
-			ParseInt(::std::num::ParseIntError);
-			Reqwest(::reqwest::Error);
-		}
-
-		errors
-		{
-			NoSolution {}
-			ParseError {}
-			HttpError {}
-		}
-	}
-}
-
-use error::*;
-
-pub mod solution;
-
-use solution::InputParser;
+		self,
+		InputParser,
+	},
+};
 
 fn main() -> Result<()>
 {
+	env_logger::init();
+
 	let subcommands: std::collections::HashMap<_,_> = solution::y2020::parsers().into_iter()
 		.map(|command|
 		{

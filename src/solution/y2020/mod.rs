@@ -1,12 +1,57 @@
 mod d17pt1;
+pub use d17pt1::Solution as D17Pt1;
 mod d17pt2;
+pub use d17pt2::Solution as D17Pt2;
+mod d18pt1;
+pub use d18pt1::Solution as D18Pt1;
+mod d18pt2;
+pub use d18pt2::Solution as D18Pt2;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
-	vec!
+	let days: Vec<Option<Box<dyn Fn(Option<String>) -> Box<dyn super::Solution + 'static>>>> = vec!
 	[
-		super::helper::coerce_parser_input((2020,17,1),|input| { d17pt1::Solution::new(input.expect("empty input received")) } ),
-		super::helper::coerce_parser_input((2020,17,2),|input| { d17pt2::Solution::new(input.expect("empty input received")) } ),
-	]
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		None,
+		Some(Box::new(|input: Option<String>| { Box::new(D17Pt1::new(input.expect("empty input received"))) })),
+		Some(Box::new(|input: Option<String>| { Box::new(D17Pt2::new(input.expect("empty input received"))) })),
+		Some(Box::new(|input: Option<String>| { Box::new(D18Pt1::new(input.expect("empty input received"))) })),
+		Some(Box::new(|input: Option<String>| { Box::new(D18Pt2::new(input.expect("empty input received"))) })),
+	];
+	days.into_iter()
+		.enumerate()
+		.filter_map(|(idx,opt)| opt.map(|parser| (idx,parser)))
+		.map(|(idx,parser)| Box::new((2020usize,idx/2+1,idx%2+1,parser)) as Box<dyn super::InputParser>)
+		.collect()
 }
 
