@@ -60,26 +60,28 @@ fn main() -> Result<()>
 		.get_matches();
 
 	let (command, command_matches) = matches.subcommand();
+	let command_matches = command_matches.expect("cannot fail due to SubCommandRequiredElseHelp");
+
 	let command = subcommands.get(command).unwrap();
-	let timer = std::time::Instant::now();
 	let input = command.input_url()
 		.map(|url| -> Result<String>
 		{
-			// TODO: use arguments for cookie
-			let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE,format!("session={}",std::env!("ADVENTOFCODE_SESSION")).parse().unwrap())].iter().cloned().collect();
+			let timer = std::time::Instant::now();
+			let cookie = command_matches.value_of("cookie").expect("cookie required but not passed");
+			let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE, format!("session={}", cookie).parse().unwrap())].iter().cloned().collect();
 			let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
 			let response = http.get(url).send()?;
 			if !response.status().is_success()
 			{
 				bail!(ErrorKind::HttpError);
 			}
+			println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
+
 			Ok(response.text()?)
 		})
 		.transpose()?;
 	
-	println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
-
-	let solution = command.parse(input, command_matches.expect("cannot fail due to SubCommandRequiredElseHelp"));
+	let solution = command.parse(input, command_matches);
 
 	let timer = std::time::Instant::now();
 	let result = solution.solve()?;

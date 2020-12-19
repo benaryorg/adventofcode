@@ -18,7 +18,28 @@ pub trait InputParser<'a>
 	}
 	fn usage<'b>(&self) -> clap::App<'b,'b>
 	{
-		clap::SubCommand::with_name(&self.name())
+		let subcommand = clap::SubCommand::with_name(&self.name());
+		if self.input_url().is_some()
+		{
+			subcommand
+				.arg
+				( clap::Arg::with_name("cookie")
+				.short("c")
+				.long("cookie")
+				.alias("session")
+				.help("cookie used for retrieving the input")
+				.allow_hyphen_values(true)
+				.takes_value(true)
+				.multiple(false)
+				.required(true)
+				.env("ADVENTOFCODE_SESSION")
+				.hide_env_values(true)
+				)
+		}
+		else
+		{
+			subcommand
+		}
 	}
 }
 
