@@ -1,10 +1,5 @@
 use crate::error::*;
 
-pub struct Solution
-{
-	input: String,
-}
-
 /// # Examples
 ///
 /// ```
@@ -18,6 +13,11 @@ pub struct Solution
 /// assert_eq!(Solution::new("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))".to_string()).solve().expect("3"), "12240");
 /// assert_eq!(Solution::new("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2".to_string()).solve().expect("4"), "13632");
 /// ```
+pub struct Solution
+{
+	input: String,
+}
+
 impl Solution
 {
 	pub fn new(input: String) -> Self
