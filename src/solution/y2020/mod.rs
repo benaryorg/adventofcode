@@ -6,6 +6,8 @@ mod d18pt1;
 pub use d18pt1::Solution as D18Pt1;
 mod d18pt2;
 pub use d18pt2::Solution as D18Pt2;
+mod d19pt1;
+pub use d19pt1::Solution as D19Pt1;
 mod d20pt1;
 pub use d20pt1::Solution as D20Pt1;
 mod d20pt2;
@@ -51,7 +53,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		Some(Box::new(|input: Option<String>| { Box::new(D17Pt2::new(input.expect("empty input received"))) })),
 		Some(Box::new(|input: Option<String>| { Box::new(D18Pt1::new(input.expect("empty input received"))) })),
 		Some(Box::new(|input: Option<String>| { Box::new(D18Pt2::new(input.expect("empty input received"))) })),
-		None,
+		Some(Box::new(|input: Option<String>| { Box::new(D19Pt1::new(input.expect("empty input received"))) })),
 		None,
 		Some(Box::new(|input: Option<String>| { Box::new(D20Pt1::new(input.expect("empty input received"))) })),
 		Some(Box::new(|input: Option<String>| { Box::new(D20Pt2::new(input.expect("empty input received"))) })),
