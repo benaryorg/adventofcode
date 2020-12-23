@@ -22,10 +22,18 @@ mod d22pt1;
 pub use d22pt1::Solution as D22Pt1;
 mod d22pt2;
 pub use d22pt2::Solution as D22Pt2;
+mod d23pt1;
+pub use d23pt1::Solution as D23Pt1;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
-	let days: Vec<Option<Box<dyn Fn(Option<String>) -> Box<dyn super::Solution + 'static>>>> = vec!
+	enum InputType<'a>
+	{
+		UrlInput(Box<dyn Fn(Option<String>) -> Box<dyn super::Solution + 'static>>),
+		Parser(Box<dyn super::InputParser<'a>>),
+	};
+
+	let days: Vec<Option<InputType>> = vec!
 	[
 		None,
 		None,
@@ -59,23 +67,30 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		None,
 		None,
 		None,
-		Some(Box::new(|input: Option<String>| { Box::new(D17Pt1::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D17Pt2::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D18Pt1::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D18Pt2::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D19Pt1::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D19Pt2::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D20Pt1::new(input.expect("empty input received"))) })),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D17Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D17Pt2::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D18Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D18Pt2::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D19Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D19Pt2::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D20Pt1::new(input.expect("empty input received")))))),
 		None,
-		Some(Box::new(|input: Option<String>| { Box::new(D21Pt1::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D21Pt2::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D22Pt1::new(input.expect("empty input received"))) })),
-		Some(Box::new(|input: Option<String>| { Box::new(D22Pt2::new(input.expect("empty input received"))) })),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D21Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D21Pt2::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D22Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D22Pt2::new(input.expect("empty input received")))))),
+		Some(InputType::Parser(D23Pt1::parser())),
 	];
 	days.into_iter()
 		.enumerate()
 		.filter_map(|(idx,opt)| opt.map(|parser| (idx,parser)))
-		.map(|(idx,parser)| Box::new((2020usize,idx/2+1,idx%2+1,parser)) as Box<dyn super::InputParser>)
+		.map(|(idx,parser)|
+			match parser
+			{
+				InputType::UrlInput(parser) => Box::new((2020usize,idx/2+1,idx%2+1,parser)) as Box<dyn super::InputParser>,
+				InputType::Parser(parser) => parser,
+			}
+		)
 		.collect()
 }
 
