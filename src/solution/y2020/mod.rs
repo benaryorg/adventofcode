@@ -24,6 +24,8 @@ mod d22pt2;
 pub use d22pt2::Solution as D22Pt2;
 mod d23pt1;
 pub use d23pt1::Solution as D23Pt1;
+mod d23pt2;
+pub use d23pt2::Solution as D23Pt2;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
@@ -80,6 +82,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		Some(InputType::UrlInput(Box::new(|input| Box::new(D22Pt1::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(D22Pt2::new(input.expect("empty input received")))))),
 		Some(InputType::Parser(D23Pt1::parser())),
+		Some(InputType::Parser(D23Pt2::parser())),
 	];
 	days.into_iter()
 		.enumerate()

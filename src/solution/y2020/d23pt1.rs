@@ -59,7 +59,7 @@ impl<'a> super::super::InputParser<'a> for Parser
 	{
 		Box::new(Solution::new(
 			matches.value_of("input").unwrap().chars().map(|i| i.to_digit(10).unwrap() as usize).collect::<Vec<_>>(),
-			matches.value_of("count").unwrap().parse().unwrap()
+			matches.value_of("iterations").unwrap().parse().unwrap()
 		))
 	}
 	fn usage<'b>(&self) -> clap::App<'b,'b>
@@ -74,10 +74,12 @@ impl<'a> super::super::InputParser<'a> for Parser
 				.default_value("186524973")
 				)
 			.arg
-				( clap::Arg::with_name("count")
-				.short("c")
-				.long("count")
-				.help("amount of rotations")
+				( clap::Arg::with_name("iterations")
+				.value_name("ITERATIONS")
+				.short("i")
+				.long("iterations")
+				.alias("count")
+				.help("amount of iterations")
 				.allow_hyphen_values(true)
 				.takes_value(true)
 				.multiple(false)

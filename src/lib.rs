@@ -2,10 +2,6 @@
 extern crate error_chain;
 #[macro_use]
 extern crate log;
-extern crate clap;
-extern crate nom;
-extern crate regex;
-extern crate reqwest;
 
 pub mod error
 {
