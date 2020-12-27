@@ -9,24 +9,33 @@ use crate::error::*;
 /// #     Solution as S,
 /// # };
 /// # env_logger::init();
-/// assert_eq!(Solution::new(&[3,8,9,1,2,5,4,6,7], 10).solve().expect("1"), "92658374");
-/// assert_eq!(Solution::new(&[3,8,9,1,2,5,4,6,7].to_string(), 100).solve().expect("1"), "67384529");
+/// assert_eq!(Solution::new([3,8,9,1,2,5,4,6,7].iter().copied(), 100).solve().expect("1"), "67384529");
 /// ```
 pub struct Solution
 {
-	numbers: Vec<usize>,
-	count: usize,
+	cups: Vec<usize>,
+	first: usize,
+	iterations: usize,
 }
 
 impl Solution
 {
-	pub fn new<I: IntoIterator<Item=usize>>(numbers: I, count: usize) -> Self
+	pub fn new<I: IntoIterator<Item=usize>>(numbers: I, iterations: usize) -> Self
 	{
-		Self
+		let numbers = numbers.into_iter().collect::<Vec<_>>();
+		let mut cups = vec![0;numbers.len()];
+		let len = cups.len();
+		for (idx, cup) in cups.iter_mut().enumerate()
 		{
-			numbers: numbers.into_iter().collect(),
-			count,
+			*cup = (idx+1)%len;
 		}
+		for (from,to) in numbers.windows(2).map(|s| (s[0]-1,s[1]-1))
+			.chain(std::iter::once((numbers.last().copied().unwrap()-1,numbers.first().copied().unwrap()-1)))
+		{
+			debug!("cups[{}] = {};",from,to);
+			cups[from] = to;
+		}
+		Self { cups, iterations, first: *numbers.first().unwrap_or(&1)-1, }
 	}
 
 	pub fn parser<'a>() -> Box<dyn super::super::InputParser<'a>>
@@ -57,8 +66,9 @@ impl<'a> super::super::InputParser<'a> for Parser
 	}
 	fn parse(&self, _input: Option<String>, matches: &clap::ArgMatches<'a>) -> Box<dyn super::super::Solution>
 	{
+		let provided_numbers = matches.value_of("input").unwrap().chars().map(|i| i.to_digit(10).unwrap() as usize).collect::<Vec<_>>();
 		Box::new(Solution::new(
-			matches.value_of("input").unwrap().chars().map(|i| i.to_digit(10).unwrap() as usize).collect::<Vec<_>>(),
+			provided_numbers,
 			matches.value_of("iterations").unwrap().parse().unwrap()
 		))
 	}
@@ -92,51 +102,41 @@ impl super::super::Solution for Solution
 {
 	fn solve(&self) -> Result<String>
 	{
-		debug!("called with input: {:?}", self.numbers);
+		let mut cups = self.cups.clone();
+		let mut ptr = self.first;
 
-		let mut cups = self.numbers.clone();
+		debug!("sum: {}", cups.iter().sum::<usize>());
+		debug!("first: {}", ptr);
+		debug!("cups: {:?}...", &cups.iter().take(16).collect::<Vec<_>>());
+		debug!("{:?}", std::iter::successors(Some(3), |n| Some(cups.get(n-1).unwrap()%cups.len()+1)).take(16.min(cups.len())).collect::<Vec<_>>());
 
-		let max = cups.iter().max().copied().ok_or(ErrorKind::NoSolution)?;
-		let min = cups.iter().min().copied().ok_or(ErrorKind::NoSolution)?;
-
-		debug!("starting {} iterations", self.count);
-
-		debug!("state: {:?}", cups);
-		for _ in 0..self.count
+		debug!("starting {} iterations", self.iterations);
+		for _ in 0..self.iterations
 		{
-			let (&current, rest) = cups.split_first().ok_or(ErrorKind::ParseError)?;
-			let (three, rest) = rest.split_at(3);
-			debug!("current: {:?}", current);
-			debug!("three: {:?}", three);
-			debug!("rest: {:?}", rest);
-			let insert_after = (min..current).rev().chain((min..=max).rev()).find(|i| !three.contains(i)).ok_or(ErrorKind::NoSolution)?;
-			cups = std::iter::once(&insert_after)
-				.chain(three.iter())
-				.chain(
-					rest.iter()
-						.chain(std::iter::once(&current))
-						.cycle()
-						.skip_while(|&&i| i != insert_after)
-						.skip(1)
-						.take(rest.len())
-				)
-				.cycle()
-				.skip_while(|&&i| i != current)
-				.skip(1)
-				.take(cups.len())
-				.copied()
-				.collect();
-			debug!("state: {:?}", cups);
+			let current = cups[ptr];
+			let first = cups[current];
+			let second = cups[first];
+			let third = cups[second];
+			let destination = (0..ptr).rev().chain((ptr..cups.len()).rev()).find(|i| ![current,first,second].contains(i)).unwrap();
+			trace!("ptr: {}", ptr);
+			trace!("current: {}", current);
+			trace!("first: {}", first);
+			trace!("second: {}", second);
+			trace!("third: {}", third);
+			trace!("destination: {}", destination);
+			cups.swap(ptr,destination);
+			cups.swap(ptr,second);
+			ptr = third;
+			debug!("{:?}", std::iter::successors(Some(3), |n| Some(cups.get(n-1).unwrap()%cups.len()+1)).take(16.min(cups.len())).collect::<Vec<_>>());
 		}
+		debug!("cups: {:?}...", &cups.iter().take(16).collect::<Vec<_>>());
 
-		let result = cups.iter()
-			.copied()
-			.cycle()
-			.skip_while(|&i| i != 1)
+		let result = std::iter::successors(Some(1), |n| Some(cups.get(n-1).unwrap()%cups.len()+1))
 			.skip(1)
-			.take(cups.len() - 1)
-			.map(|i| Ok(std::char::from_digit((i%10) as u32,10).ok_or(ErrorKind::ParseError)?))
+			.take_while(|&i| i != 1)
+			.map(|i| Ok(std::char::from_digit(i as u32,10).ok_or(ErrorKind::ParseError)?))
 			.collect::<Result<String>>()?;
+
 		Ok(result)
 	}
 }

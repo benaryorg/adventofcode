@@ -749,4 +749,3 @@ impl super::super::Solution for Solution
 	}
 }
 
-

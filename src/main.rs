@@ -1,5 +1,7 @@
 #[macro_use]
 extern crate error_chain;
+#[macro_use]
+extern crate log;
 
 use adventofcode::
 {
@@ -52,6 +54,7 @@ fn main() -> Result<()>
 		})
 		.transpose()?;
 	
+	info!("starting year 2020 day {} part {}", command.day(), command.part());
 	let solution = command.parse(input, command_matches);
 
 	let timer = std::time::Instant::now();

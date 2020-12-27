@@ -1,0 +1,162 @@
+use crate::error::*;
+
+/// # Examples
+///
+/// ```
+/// # use adventofcode::solution::
+/// # {
+/// #     y2020::D12Pt2 as Solution,
+/// #     Solution as S,
+/// # };
+/// # env_logger::init();
+/// let input = "F10\n\
+///     N3\n\
+///     F7\n\
+///     R90\n\
+///     F11";
+/// assert_eq!(Solution::new(input.to_string()).solve().expect("1"), "286");
+/// ```
+pub struct Solution
+{
+	input: String,
+}
+
+impl Solution
+{
+	pub fn new(input: String) -> Self
+	{
+		Self { input, }
+	}
+}
+#[derive(Clone,Debug,Eq,PartialEq)]
+struct Ship
+{
+	x: isize,
+	y: isize,
+	way_x: isize,
+	way_y: isize,
+}
+
+impl Ship
+{
+	fn new() -> Self
+	{
+		Self
+		{
+			x: 0,
+			y: 0,
+			way_x: 10,
+			way_y: 1,
+		}
+	}
+
+	fn action(&mut self, action: Action)
+	{
+		match action
+		{
+			Action::Directional(dir,number) =>
+			{
+				let (x,y) = dir.coords();
+				self.way_x += x * number;
+				self.way_y += y * number;
+			},
+			Action::Forward(number) =>
+			{
+				self.x += self.way_x * number;
+				self.y += self.way_y * number;
+			},
+			Action::Rotate(number) =>
+			{
+				let times = (number + 4) % 4;
+				for _ in 0..times
+				{
+					std::mem::swap(&mut self.way_x, &mut self.way_y);
+					self.way_y = -self.way_y;
+				}
+			}
+		}
+	}
+
+	fn distance(&self) -> usize
+	{
+		self.x.abs() as usize + self.y.abs() as usize
+	}
+}
+
+#[derive(Copy,Clone,Debug,Eq,PartialEq)]
+enum Direction
+{
+	North,
+	East,
+	West,
+	South,
+}
+
+impl Direction
+{
+	fn coords(&self) -> (isize,isize)
+	{
+		use Direction::*;
+		match self
+		{
+			North => (0,1),
+			East => (1,0),
+			South => (0,-1),
+			West => (-1,0),
+		}
+	}
+}
+
+#[derive(Clone,Debug,Eq,PartialEq)]
+enum Action
+{
+	Directional(Direction,isize),
+	Forward(isize),
+	Rotate(isize),
+}
+
+impl std::str::FromStr for Action
+{
+	type Err = Error;
+	fn from_str(input: &str) -> Result<Self>
+	{
+		use Direction::*;
+		use Action::*;
+
+		let mut chars = input.chars();
+		let ch = chars.next();
+		let number = chars.collect::<String>().parse()?;
+
+		Ok(match ch
+		{
+			Some('N') => Directional(North,number),
+			Some('E') => Directional(East,number),
+			Some('S') => Directional(South,number),
+			Some('W') => Directional(West,number),
+			Some('F') => Forward(number),
+			Some('L') => Rotate(-number/90%4),
+			Some('R') => Rotate(number/90%4),
+			_ => bail!(ErrorKind::ParseError),
+		})
+	}
+}
+
+impl super::super::Solution for Solution
+{
+	fn solve(&self) -> Result<String>
+	{
+		let mut ship = Ship::new();
+
+		let actions = self.input.lines()
+			.map(|line| line.parse())
+			.collect::<Result<Vec<Action>>>()?;
+
+		for action in actions
+		{
+			ship.action(action);
+		}
+
+		Ok(format!("{}", ship.distance()))
+	}
+}
+

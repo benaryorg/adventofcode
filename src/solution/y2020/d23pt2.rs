@@ -34,7 +34,6 @@ impl Solution
 		for (from,to) in numbers.windows(2).map(|s| (s[0]-1,s[1]-1))
 			.chain(std::iter::once((numbers.last().copied().unwrap()-1,numbers.len())))
 			.chain(std::iter::once((cups.len()-1,numbers.first().copied().unwrap()-1)))
-			//.chain(std::iter::once((numbers.last().copied().unwrap()-1,numbers.first().copied().unwrap()-1)))
 		{
 			debug!("cups[{}] = {};",from,to);
 			cups[from] = to;

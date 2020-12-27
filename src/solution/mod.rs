@@ -54,17 +54,6 @@ impl<'a> InputParser<'a> for (usize, usize, usize, Box<dyn Fn(&clap::ArgMatches<
 	}
 }
 
-impl<'a> InputParser<'a> for (usize, usize, usize, Box<dyn Fn(Option<String>, &clap::ArgMatches<'a>) -> Box<dyn Solution>>)
-{
-	fn year(&self) -> usize { self.0 }
-	fn day(&self) -> usize { self.1 }
-	fn part(&self) -> usize { self.2 }
-	fn parse(&self, input: Option<String>, matches: &clap::ArgMatches<'a>) -> Box<dyn Solution>
-	{
-		(self.3)(input,matches)
-	}
-}
-
 impl<'a> InputParser<'a> for (usize, usize, usize, Box<dyn Fn(Option<String>) -> Box<dyn Solution>>)
 {
 	fn year(&self) -> usize { self.0 }
