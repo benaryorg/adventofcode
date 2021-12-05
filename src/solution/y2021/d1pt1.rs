@@ -3,11 +3,7 @@ use crate::error::*;
 /// # Examples
 ///
 /// ```
-/// # use adventofcode::solution::
-/// # {
-/// #     y2021::D1Pt1 as Solution,
-/// #     Solution as S,
-/// # };
+/// # use adventofcode::solution::{ y2021::d1pt1::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "199\n\
 ///     200\n\
