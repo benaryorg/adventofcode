@@ -12,7 +12,9 @@ fn main() -> Result<()>
 {
 	env_logger::init();
 
-	let subcommands: std::collections::HashMap<_,_> = solution::y2020::parsers().into_iter()
+	let subcommands: std::collections::HashMap<_,_> =
+		solution::y2020::parsers().into_iter()
+			.chain(solution::y2021::parsers().into_iter())
 		.map(|command|
 		{
 			(InputParser::usage(command.as_ref()).get_name().to_owned(), command)
@@ -49,7 +51,7 @@ fn main() -> Result<()>
 		})
 		.transpose()?;
 	
-	info!("starting year 2020 day {} part {}", command.day(), command.part());
+	info!("starting year {} day {} part {}", command.year(), command.day(), command.part());
 	let solution = command.parse(input, command_matches);
 
 	let timer = std::time::Instant::now();
