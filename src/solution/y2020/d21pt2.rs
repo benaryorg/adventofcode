@@ -96,7 +96,7 @@ impl super::super::Solution for Solution
 
 		let mut unmatched = recipes.clone();
 
-		let mut allergenes = std::collections::HashSet::new();
+		let mut allergenes = std::collections::BTreeSet::new();
 
 		while !unmatched.is_empty()
 		{
@@ -127,7 +127,7 @@ impl super::super::Solution for Solution
 						})
 						.collect::<Vec<_>>()
 				})
-				.fold(std::collections::HashMap::new(),|mut acc,new|
+				.fold(std::collections::BTreeMap::new(),|mut acc,new|
 				{
 					*acc.entry(new).or_insert(0) += 1;
 					acc
