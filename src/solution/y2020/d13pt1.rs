@@ -33,7 +33,7 @@ impl super::super::Solution for Solution
 		let start_time = lines.next().ok_or(Error::AocParseError)?.parse::<usize>()?;
 		let busses = lines.next()
 			.ok_or(Error::AocParseError)?
-			.split(",")
+			.split(',')
 			.filter(|&id| id != "x")
 			.map(|id| Ok(id.parse::<usize>()?))
 			.collect::<Result<Vec<_>>>()?;

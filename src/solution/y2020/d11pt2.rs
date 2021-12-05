@@ -33,6 +33,7 @@ impl Solution
 		Self { input, }
 	}
 }
+
 #[derive(Clone,Debug,Eq,PartialEq)]
 struct State
 {
@@ -50,7 +51,7 @@ impl State
 
 			for j in 0..self.vec[i].len()
 			{
-				if let &Some(current) = self.vec.get(i as usize).and_then(|v| v.get(j as usize)).unwrap()
+				if let Some(current) = *self.vec.get(i as usize).and_then(|v| v.get(j as usize)).unwrap()
 				{
 					let count = (-1..=1)
 						.flat_map(|x: isize|
@@ -70,11 +71,7 @@ impl State
 								.find(Option::is_some)
 								.unwrap_or(None)
 						})
-						.filter(|&seat| match seat
-						{
-							None => false,
-							Some(x) => x,
-						})
+						.filter(|&seat| seat.unwrap_or(false))
 						.count();
 					let new = match (current,count)
 					{

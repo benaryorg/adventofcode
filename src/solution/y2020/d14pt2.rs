@@ -40,7 +40,7 @@ impl Mask
 	{
 		let base = num | self.one;
 		let floatmask = !(self.one | self.zero) & 0x0000_000f_ffff_ffff;
-		let count = (1 << floatmask.count_ones()) >> 1 as usize;
+		let count = (1 << floatmask.count_ones()) >> 1_usize;
 		std::iter::repeat(base)
 			.take(count*2)
 			.enumerate()
@@ -96,7 +96,7 @@ impl super::super::Solution for Solution
 			{
 				if next.starts_with("mask =")
 				{
-					(acc, next.split("=").nth(1).ok_or(Error::AocParseError).unwrap().trim().parse().unwrap())
+					(acc, next.split('=').nth(1).ok_or(Error::AocParseError).unwrap().trim().parse().unwrap())
 				}
 				else
 				{

@@ -57,7 +57,7 @@ impl super::super::Solution for Solution
 		let _ = lines.next().ok_or(Error::AocParseError)?;
 		let mut busses = lines.next()
 			.ok_or(Error::AocParseError)?
-			.split(",")
+			.split(',')
 			.enumerate()
 			.filter(|&(_,id)| id != "x")
 			.map(|(idx,id)| Ok(Bus::new(idx as u128,id.parse()?)))

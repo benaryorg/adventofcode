@@ -66,8 +66,8 @@ fn recipe(input: &str) -> IResult<&str,Recipe>
 
 	Ok((input,Recipe
 	{
-		allergenes: allergenes,
-		ingredients: ingredients,
+		allergenes,
+		ingredients,
 	}))
 }
 

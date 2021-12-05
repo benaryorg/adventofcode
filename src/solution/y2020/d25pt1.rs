@@ -67,11 +67,11 @@ impl super::super::Solution for Solution
 			bail!(Error::AocParseError);
 		}
 
-		let card_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != card_pub).next().ok_or(Error::AocNoSolution)?.0;
-		let door_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != door_pub).next().ok_or(Error::AocNoSolution)?.0;
+		let card_loop = transform(SUBJECT).enumerate().find(|&(_,value)| value == card_pub).ok_or(Error::AocNoSolution)?.0;
+		let door_loop = transform(SUBJECT).enumerate().find(|&(_,value)| value == door_pub).ok_or(Error::AocNoSolution)?.0;
 
-		let card_enc_key = transform(door_pub).skip(card_loop).next().ok_or(Error::AocNoSolution)?;
-		let door_enc_key = transform(card_pub).skip(door_loop).next().ok_or(Error::AocNoSolution)?;
+		let card_enc_key = transform(door_pub).nth(card_loop).ok_or(Error::AocNoSolution)?;
+		let door_enc_key = transform(card_pub).nth(door_loop).ok_or(Error::AocNoSolution)?;
 
 		if card_enc_key != door_enc_key
 		{

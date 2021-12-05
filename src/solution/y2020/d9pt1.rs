@@ -60,9 +60,7 @@ impl super::super::Solution for Solution
 			{
 				let (result,haystack) = input.split_last().unwrap();
 				let haystack = haystack.iter().copied().collect::<std::collections::BTreeSet<_>>();
-				haystack.iter()
-					.find(|&needle| haystack.contains(&(result - needle)))
-					.is_none()
+				!haystack.iter().any(|&needle| haystack.contains(&(result - needle)))
 			})
 			.ok_or(Error::AocNoSolution)?.last().unwrap();
 

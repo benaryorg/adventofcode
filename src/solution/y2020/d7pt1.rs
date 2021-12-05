@@ -51,7 +51,7 @@ impl super::super::Solution for Solution
 					{
 						let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(Error::AocParseError)?;
 						let count: usize = content.split(' ').next().ok_or(Error::AocParseError)?.parse()?;
-						let colour = content.splitn(2,' ').skip(1).next().ok_or(Error::AocParseError)?;
+						let colour = content.splitn(2,' ').nth(1).ok_or(Error::AocParseError)?;
 						Ok((count,colour))
 					})
 					.collect::<Result<Vec<_>>>()?;

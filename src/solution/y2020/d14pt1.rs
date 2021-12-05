@@ -76,7 +76,7 @@ impl super::super::Solution for Solution
 			{
 				if next.starts_with("mask =")
 				{
-					(acc, next.split("=").nth(1).ok_or(Error::AocParseError).unwrap().trim().parse().unwrap())
+					(acc, next.split('=').nth(1).ok_or(Error::AocParseError).unwrap().trim().parse().unwrap())
 				}
 				else
 				{

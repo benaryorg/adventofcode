@@ -141,7 +141,7 @@ impl super::super::Solution for Solution
 		let result = std::iter::successors(Some(set),|set|
 		{
 			use rayon::prelude::*;
-			let all = set.into_iter()
+			let all = set.iter()
 				.fold(std::collections::HashSet::new(),|mut set, pos|
 				{
 					set.extend(pos.neighbours());

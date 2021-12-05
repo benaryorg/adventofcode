@@ -88,7 +88,7 @@ fn parenthesis(input: &str) -> IResult<&str, isize>
 	let (input, calc) = calculable(input)?;
 	let (input, _) = char(')')(input)?;
 
-	return Ok((input, calc));
+	Ok((input, calc))
 }
 
 impl super::super::Solution for Solution

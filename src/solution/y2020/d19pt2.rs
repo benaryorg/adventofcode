@@ -104,15 +104,15 @@ impl Rule
 	{
 		match &self.condition
 		{
-			&Condition::Char(_) => unimplemented!(), // cannot validate char directly
-			&Condition::Or(ref first, ref second) =>
+			Condition::Char(_) => unimplemented!(), // cannot validate char directly
+			Condition::Or(ref first, ref second) =>
 			{
 				Rule { id: 0, condition: Condition::Rules(first.clone()), }.validate(rules, input.as_ref())
 					.into_iter()
 					.chain(Rule { id: 0, condition: Condition::Rules(second.clone()), }.validate(rules, input.as_ref()).into_iter())
 					.collect()
 			},
-			&Condition::Rules(ref vec) =>
+			Condition::Rules(ref vec) =>
 			{
 				let mut chars: Vec<std::collections::VecDeque<char>> = vec![input.as_ref().chars().collect()];
 				for rule in vec.iter()
@@ -137,7 +137,7 @@ impl Rule
 							let mut vec = Vec::new();
 							for chars in chars.into_iter()
 							{
-								let results = rule.validate(&rules, chars.iter().collect::<String>());
+								let results = rule.validate(rules, chars.iter().collect::<String>());
 								vec.extend(results.iter().map(|s| s.chars().collect()));
 							}
 							chars = vec;
@@ -166,8 +166,8 @@ fn condition(input: &str) -> IResult<&str,Condition>
 	alt
 	((
 		map(separated_pair(separated_list1(char(' '), number), tag(" | "), separated_list1(char(' '), number)), |(left,right)| Condition::Or(left,right)),
-		map(delimited(char('"'), anychar, char('"')), |ch| Condition::Char(ch)),
-		map(separated_list1(char(' '), number), |vec| Condition::Rules(vec)),
+		map(delimited(char('"'), anychar, char('"')), Condition::Char),
+		map(separated_list1(char(' '), number), Condition::Rules),
 	))(input)
 }
 

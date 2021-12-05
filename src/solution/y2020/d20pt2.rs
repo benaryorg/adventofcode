@@ -272,9 +272,7 @@ impl super::super::Solution for Solution
 			.fold(std::collections::HashMap::<[bool;10],std::collections::BTreeSet<usize>>::new(), |mut map, (id, border)|
 			{
 				let key = border.min(get_10array(border.iter().rev().copied()).unwrap());
-				map.entry(key)
-					.or_insert_with(|| Default::default())
-					.insert(id);
+				map.entry(key).or_default().insert(id);
 				map
 			});
 
@@ -329,7 +327,7 @@ impl super::super::Solution for Solution
 			}
 		};
 
-		let middle = tiles.iter().find(|tile| !corners.contains(&tile) && !edges.contains(&tile)).ok_or(Error::AocNoSolution)?;
+		let middle = tiles.iter().find(|tile| !corners.contains(tile) && !edges.contains(tile)).ok_or(Error::AocNoSolution)?;
 		fill_at(&middle.grid, &mut big_grid, 10, 10);
 
 		let mut top = None;
@@ -345,7 +343,7 @@ impl super::super::Solution for Solution
 					edge.flip();
 				}
 				let offset = edge.borders().iter().position(|border| border == &middle.bottom()[0]).unwrap();
-				for _ in 0..((offset+0)/2)
+				for _ in 0..(offset/2)
 				{
 					edge.rotate();
 				}
@@ -580,22 +578,22 @@ impl super::super::Solution for Solution
 							vec!
 							[
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[0].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+0),b)))
+									.chain(s0.iter().copied().zip(monster[0].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
 									.chain(s1.iter().copied().zip(monster[1].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
 									.chain(s2.iter().copied().zip(monster[2].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[0].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+0),b)))
+									.chain(s0.iter().copied().zip(monster[0].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
 									.chain(s1.iter().copied().zip(monster[1].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
 									.chain(s2.iter().copied().zip(monster[2].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[2].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+0),b)))
+									.chain(s0.iter().copied().zip(monster[2].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
 									.chain(s1.iter().copied().zip(monster[1].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
 									.chain(s2.iter().copied().zip(monster[0].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[2].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+0),b)))
+									.chain(s0.iter().copied().zip(monster[2].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
 									.chain(s1.iter().copied().zip(monster[1].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
 									.chain(s2.iter().copied().zip(monster[0].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
@@ -633,7 +631,7 @@ impl super::super::Solution for Solution
 				vec!
 				[
 					std::iter::empty()
-						.chain(s[0].iter().copied().zip(monster_rot[0].iter().copied()).enumerate().map(|(x,b)| ((x,y+0),b)))
+						.chain(s[0].iter().copied().zip(monster_rot[0].iter().copied()).enumerate().map(|(x,b)| ((x,y),b)))
 						.chain(s[1].iter().copied().zip(monster_rot[1].iter().copied()).enumerate().map(|(x,b)| ((x,y+1),b)))
 						.chain(s[2].iter().copied().zip(monster_rot[2].iter().copied()).enumerate().map(|(x,b)| ((x,y+2),b)))
 						.chain(s[3].iter().copied().zip(monster_rot[3].iter().copied()).enumerate().map(|(x,b)| ((x,y+3),b)))
@@ -655,7 +653,7 @@ impl super::super::Solution for Solution
 						.chain(s[19].iter().copied().zip(monster_rot[19].iter().copied()).enumerate().map(|(x,b)| ((x,y+19),b)))
 						.collect::<Vec<_>>(),
 					std::iter::empty()
-						.chain(s[0].iter().copied().zip(monster_rot[0].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+0),b)))
+						.chain(s[0].iter().copied().zip(monster_rot[0].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y),b)))
 						.chain(s[1].iter().copied().zip(monster_rot[1].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+1),b)))
 						.chain(s[2].iter().copied().zip(monster_rot[2].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+2),b)))
 						.chain(s[3].iter().copied().zip(monster_rot[3].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+3),b)))
@@ -677,7 +675,7 @@ impl super::super::Solution for Solution
 						.chain(s[19].iter().copied().zip(monster_rot[19].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+19),b)))
 						.collect::<Vec<_>>(),
 					std::iter::empty()
-						.chain(s[19].iter().copied().zip(monster_rot[0].iter().copied()).enumerate().map(|(x,b)| ((x,y+0),b)))
+						.chain(s[19].iter().copied().zip(monster_rot[0].iter().copied()).enumerate().map(|(x,b)| ((x,y),b)))
 						.chain(s[18].iter().copied().zip(monster_rot[1].iter().copied()).enumerate().map(|(x,b)| ((x,y+1),b)))
 						.chain(s[17].iter().copied().zip(monster_rot[2].iter().copied()).enumerate().map(|(x,b)| ((x,y+2),b)))
 						.chain(s[16].iter().copied().zip(monster_rot[3].iter().copied()).enumerate().map(|(x,b)| ((x,y+3),b)))
@@ -699,7 +697,7 @@ impl super::super::Solution for Solution
 						.chain(s[0].iter().copied().zip(monster_rot[19].iter().copied()).enumerate().map(|(x,b)| ((x,y+19),b)))
 						.collect::<Vec<_>>(),
 					std::iter::empty()
-						.chain(s[19].iter().copied().zip(monster_rot[0].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+0),b)))
+						.chain(s[19].iter().copied().zip(monster_rot[0].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y),b)))
 						.chain(s[18].iter().copied().zip(monster_rot[1].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+1),b)))
 						.chain(s[17].iter().copied().zip(monster_rot[2].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+2),b)))
 						.chain(s[16].iter().copied().zip(monster_rot[3].iter().rev().copied()).enumerate().map(|(x,b)| ((x,y+3),b)))

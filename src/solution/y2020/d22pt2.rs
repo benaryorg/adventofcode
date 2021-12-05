@@ -74,7 +74,7 @@ fn recursive_combat(mut player1: Deck, mut player2: Deck) -> (Player,Deck)
 
 	debug!("=== Game N ===");
 
-	while player1.len() > 0 && player2.len() > 0
+	while !player1.is_empty() && !player2.is_empty()
 	{
 		debug!("");
 		debug!("-- Round N (Game N) --");
@@ -117,7 +117,7 @@ fn recursive_combat(mut player1: Deck, mut player2: Deck) -> (Player,Deck)
 		};
 	}
 
-	if player1.len() == 0
+	if player1.is_empty()
 	{
 		(Player::Two,player2)
 	}

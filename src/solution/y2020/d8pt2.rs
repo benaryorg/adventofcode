@@ -73,11 +73,11 @@ impl super::super::Solution for Solution
 			let mut pi: isize = 0;
 			let mut set = std::collections::BTreeSet::new();
 
-			let inverted = match inst
+			let inverted = match *inst
 			{
-				&Instruction::Nop(i) => Instruction::Jmp(i),
-				&Instruction::Jmp(i) => Instruction::Nop(i),
-				&Instruction::Acc(_) => continue,
+				Instruction::Nop(i) => Instruction::Jmp(i),
+				Instruction::Jmp(i) => Instruction::Nop(i),
+				Instruction::Acc(_) => continue,
 			};
 			let mut code = code.clone();
 			code[idx] = inverted;

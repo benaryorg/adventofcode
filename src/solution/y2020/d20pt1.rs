@@ -214,9 +214,7 @@ impl super::super::Solution for Solution
 			.fold(std::collections::HashMap::<[bool;10],std::collections::BTreeSet<usize>>::new(), |mut map, (id, border)|
 			{
 				let key = border.min(get_10array(border.iter().rev().copied()).unwrap());
-				map.entry(key)
-					.or_insert_with(|| Default::default())
-					.insert(id);
+				map.entry(key).or_default().insert(id);
 				map
 			});
 

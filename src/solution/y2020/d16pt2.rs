@@ -115,8 +115,8 @@ impl super::super::Solution for Solution
 				(0..rules.len())
 					.map(
 					{
-						let kv = kv.clone();
-						move |i| (i,kv.clone())
+						let kv = kv;
+						move |i| (i,kv)
 					})
 			})
 			.filter(|&(idx,(_,rule))| tickets.iter().all(|ticket| ticket.0.get(idx).map(|&value| rule.validate(value)).unwrap_or(false)))

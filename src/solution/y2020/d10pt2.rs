@@ -89,10 +89,10 @@ impl super::super::Solution for Solution
 				else
 				{
 					let (front,rest) = vec.split_at(2);
-					let recurse_rest = recurse(memoize,std::iter::once(front[1]).chain(rest.into_iter().copied()));
+					let recurse_rest = recurse(memoize,std::iter::once(front[1]).chain(rest.iter().copied()));
 					let result = recurse_rest + if front.iter().sum::<usize>() <= 3
 					{
-						recurse(memoize,std::iter::once(front[0] + front[1]).chain(rest.into_iter().copied()))
+						recurse(memoize,std::iter::once(front[0] + front[1]).chain(rest.iter().copied()))
 					}
 					else
 					{

@@ -124,7 +124,7 @@ impl super::super::Solution for Solution
 {
 	fn solve(&self) -> Result<String>
 	{
-		let nums = self.input.split(",")
+		let nums = self.input.split(',')
 			.map(|num| Ok(num.parse::<usize>()?))
 			.collect::<Result<Vec<_>>>()?;
 

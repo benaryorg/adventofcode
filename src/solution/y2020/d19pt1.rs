@@ -69,8 +69,8 @@ impl Rule
 	{
 		match &self.condition
 		{
-			&Condition::Char(_) => unimplemented!(), // cannot validate char directly
-			&Condition::Or(ref first, ref second) =>
+			Condition::Char(_) => unimplemented!(), // cannot validate char directly
+			Condition::Or(ref first, ref second) =>
 			{
 				let v1 = Rule { id: 0, condition: Condition::Rules(first.clone()), }.validate(rules, input.as_ref());
 				if v1.0
@@ -82,7 +82,7 @@ impl Rule
 					Rule { id: 0, condition: Condition::Rules(second.clone()), }.validate(rules, input.as_ref())
 				}
 			},
-			&Condition::Rules(ref vec) =>
+			Condition::Rules(ref vec) =>
 			{
 				let mut chars: std::collections::VecDeque<char> = input.as_ref().chars().collect();
 				for rule in vec.iter()
@@ -93,7 +93,7 @@ impl Rule
 						&Rule { condition: Condition::Char(rch), .. } => chars.pop_front().map(|ch| rch == ch).unwrap_or(false),
 						rule =>
 						{
-							match rule.validate(&rules, chars.iter().collect::<String>())
+							match rule.validate(rules, chars.iter().collect::<String>())
 							{
 								(false, _) => false,
 								(true, s) =>
@@ -125,8 +125,8 @@ fn condition(input: &str) -> IResult<&str,Condition>
 	alt
 	((
 		map(separated_pair(separated_list1(char(' '), number), tag(" | "), separated_list1(char(' '), number)), |(left,right)| Condition::Or(left,right)),
-		map(delimited(char('"'), anychar, char('"')), |ch| Condition::Char(ch)),
-		map(separated_list1(char(' '), number), |vec| Condition::Rules(vec)),
+		map(delimited(char('"'), anychar, char('"')), Condition::Char),
+		map(separated_list1(char(' '), number), Condition::Rules),
 	))(input)
 }
 

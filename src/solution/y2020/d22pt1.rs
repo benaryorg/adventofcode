@@ -54,7 +54,7 @@ impl super::super::Solution for Solution
 			.map(|s| Ok(s.parse::<usize>()?))
 			.collect::<Result<std::collections::VecDeque<_>>>()?;
 
-		while player1.len() > 0 && player2.len() > 0
+		while !player1.is_empty() && !player2.is_empty()
 		{
 			let card1 = player1.pop_front().unwrap();
 			let card2 = player2.pop_front().unwrap();

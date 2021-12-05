@@ -67,8 +67,8 @@ fn recipe(input: &str) -> IResult<&str,Recipe>
 
 	Ok((input,Recipe
 	{
-		allergenes: allergenes,
-		ingredients: ingredients,
+		allergenes,
+		ingredients,
 	}))
 }
 
@@ -148,7 +148,7 @@ impl super::super::Solution for Solution
 			.map(|recipe|
 			{
 				let Recipe { ingredients, allergenes, } = recipe.clone();
-				let mut ingredients = ingredients.clone();
+				let mut ingredients = ingredients;
 				ingredients.retain(|ingredient| safe.contains(ingredient));
 				Recipe { ingredients, allergenes, }
 			})
@@ -188,7 +188,7 @@ impl super::super::Solution for Solution
 				})
 				.fold(std::collections::HashMap::new(),|mut acc,(allergen,ingredient)|
 				{
-					acc.entry(allergen).or_insert(std::collections::HashSet::new()).insert(ingredient);
+					acc.entry(allergen).or_insert_with(std::collections::HashSet::new).insert(ingredient);
 					acc
 				});
 			for (allergen,ingredients) in &mut map
@@ -211,7 +211,7 @@ impl super::super::Solution for Solution
 		}
 
 		recipes.iter()
-			.flat_map(|recipe| recipe.allergenes.iter().filter(|&allergene| allergenes.iter().find(|(_,a)| allergene == a).is_none()))
+			.flat_map(|recipe| recipe.allergenes.iter().filter(|&allergene| !allergenes.iter().any(|(_,a)| allergene == a)))
 			.for_each(|a| debug!("{}", a));
 
 		let mut allergenes = allergenes.into_iter().collect::<Vec<_>>();
