@@ -75,54 +75,54 @@ impl std::str::FromStr for Passport
 
 		Ok(Passport
 		{
-			ecl: match kv.get("ecl").ok_or(Error::AocParseError)?
+			ecl: match kv.get("ecl").ok_or(Error::AocParsing)?
 			{
 				e@&"amb" | e@&"blu" | e@&"brn" | e@&"gry" | e@&"grn" | e@&"hzl" | e@&"oth" => e.to_string(),
-				_ => return Err(Error::AocParseError),
+				_ => return Err(Error::AocParsing),
 			},
 			pid:
 			{
-				let s = kv.get("pid").ok_or(Error::AocParseError)?;
+				let s = kv.get("pid").ok_or(Error::AocParsing)?;
 				if s.chars().count() != 9 || s.chars().filter(char::is_ascii_digit).count() != 9
 				{
-					return Err(Error::AocParseError);
+					return Err(Error::AocParsing);
 				}
 				s.parse()?
 			},
-			eyr: match kv.get("eyr").ok_or(Error::AocParseError)?.parse()?
+			eyr: match kv.get("eyr").ok_or(Error::AocParsing)?.parse()?
 			{
 				e@2020..=2030 => e,
-				_ => return Err(Error::AocParseError),
+				_ => return Err(Error::AocParsing),
 			},
 			hcl:
 			{
-				let mut chars = kv.get("hcl").ok_or(Error::AocParseError)?.chars();
+				let mut chars = kv.get("hcl").ok_or(Error::AocParsing)?.chars();
 				if chars.next() != Some('#')
 				{
-					return Err(Error::AocParseError);
+					return Err(Error::AocParsing);
 				}
 				let vec = chars.collect::<Vec<char>>();
 				if vec.len() != 6 || vec.iter().copied().filter(char::is_ascii_hexdigit).count() != 6
 				{
-					return Err(Error::AocParseError);
+					return Err(Error::AocParsing);
 				}
 				[vec[0],vec[1],vec[2],vec[3],vec[4],vec[5],]
 			},
-			byr: match kv.get("byr").ok_or(Error::AocParseError)?.parse()?
+			byr: match kv.get("byr").ok_or(Error::AocParsing)?.parse()?
 			{
 				e@1920..=2002 => e,
-				_ => return Err(Error::AocParseError),
+				_ => return Err(Error::AocParsing),
 			},
-			iyr: match kv.get("iyr").ok_or(Error::AocParseError)?.parse()?
+			iyr: match kv.get("iyr").ok_or(Error::AocParsing)?.parse()?
 			{
 				e@2010..=2020 => e,
-				_ => return Err(Error::AocParseError),
+				_ => return Err(Error::AocParsing),
 			},
 			cid: kv.get("cid").map(|s| s.parse()).transpose()?,
 			hgt:
 			{
-				let s = kv.get("hgt").ok_or(Error::AocParseError)?;
-				let (num,unit) = s.split_at(s.find(|ch: char| !ch.is_ascii_digit()).ok_or(Error::AocParseError)?);
+				let s = kv.get("hgt").ok_or(Error::AocParsing)?;
+				let (num,unit) = s.split_at(s.find(|ch: char| !ch.is_ascii_digit()).ok_or(Error::AocParsing)?);
 				let num = num.parse()?;
 				if !match unit
 				{
@@ -131,7 +131,7 @@ impl std::str::FromStr for Passport
 					_ => false,
 				}
 				{
-					return Err(Error::AocParseError);
+					return Err(Error::AocParsing);
 				}
 				(num,unit.to_string())
 			},

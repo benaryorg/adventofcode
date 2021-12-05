@@ -62,14 +62,14 @@ impl std::str::FromStr for Passport
 
 		Ok(Passport
 		{
-			ecl: kv.get("ecl").ok_or(Error::AocParseError)?.to_string(),
-			pid: kv.get("pid").ok_or(Error::AocParseError)?.to_string(),
-			eyr: kv.get("eyr").ok_or(Error::AocParseError)?.to_string(),
-			hcl: kv.get("hcl").ok_or(Error::AocParseError)?.to_string(),
-			byr: kv.get("byr").ok_or(Error::AocParseError)?.to_string(),
-			iyr: kv.get("iyr").ok_or(Error::AocParseError)?.to_string(),
+			ecl: kv.get("ecl").ok_or(Error::AocParsing)?.to_string(),
+			pid: kv.get("pid").ok_or(Error::AocParsing)?.to_string(),
+			eyr: kv.get("eyr").ok_or(Error::AocParsing)?.to_string(),
+			hcl: kv.get("hcl").ok_or(Error::AocParsing)?.to_string(),
+			byr: kv.get("byr").ok_or(Error::AocParsing)?.to_string(),
+			iyr: kv.get("iyr").ok_or(Error::AocParsing)?.to_string(),
 			cid: kv.get("cid").map(|s| s.to_string()),
-			hgt: kv.get("hgt").ok_or(Error::AocParseError)?.to_string(),
+			hgt: kv.get("hgt").ok_or(Error::AocParsing)?.to_string(),
 		})
 	}
 }

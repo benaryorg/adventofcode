@@ -34,7 +34,7 @@ pub mod error
 		#[error("no solution was found for the aoc input")]
 		AocNoSolution,
 		#[error("aoc input could not be parsed")]
-		AocParseError,
+		AocParsing,
 	}
 }
 

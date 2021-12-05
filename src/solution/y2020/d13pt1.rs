@@ -30,9 +30,9 @@ impl super::super::Solution for Solution
 	fn solve(&self) -> Result<String>
 	{
 		let mut lines = self.input.lines();
-		let start_time = lines.next().ok_or(Error::AocParseError)?.parse::<usize>()?;
+		let start_time = lines.next().ok_or(Error::AocParsing)?.parse::<usize>()?;
 		let busses = lines.next()
-			.ok_or(Error::AocParseError)?
+			.ok_or(Error::AocParsing)?
 			.split(',')
 			.filter(|&id| id != "x")
 			.map(|id| Ok(id.parse::<usize>()?))

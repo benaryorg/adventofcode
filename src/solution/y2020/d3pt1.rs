@@ -50,7 +50,7 @@ impl super::super::Solution for Solution
 						{
 							'.' => false,
 							'#' => true,
-							_ => bail!(Error::AocParseError),
+							_ => bail!(Error::AocParsing),
 						})
 					})
 					.collect::<Result<Vec<_>>>()

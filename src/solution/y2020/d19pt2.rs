@@ -189,15 +189,15 @@ impl super::super::Solution for Solution
 
 		let modified =
 		vec![
-			rule("8: 42 | 42 8").map_err(|err| anyhow!("{}", err)).context(Error::AocParseError).map(|t| t.1),
-			rule("11: 42 31 | 42 11 31").map_err(|err| anyhow!("{}", err)).context(Error::AocParseError).map(|t| t.1),
+			rule("8: 42 | 42 8").map_err(|err| anyhow!("{}", err)).context(Error::AocParsing).map(|t| t.1),
+			rule("11: 42 31 | 42 11 31").map_err(|err| anyhow!("{}", err)).context(Error::AocParsing).map(|t| t.1),
 		].into_iter()
 			.collect::<Result<Vec<_>>>()?;
 
 		let mut parts = self.input.splitn(2,"\n\n");
-		let rules = parts.next().ok_or(Error::AocParseError)?.lines()
+		let rules = parts.next().ok_or(Error::AocParsing)?.lines()
 			.inspect(|line| debug!("got rule: {}", line))
-			.map(|line| Ok(rule(line).map_err(|err| anyhow!("{}", err)).context(Error::AocParseError)?.1))
+			.map(|line| Ok(rule(line).map_err(|err| anyhow!("{}", err)).context(Error::AocParsing)?.1))
 			.inspect(|rule| debug!("parsed rule: {:?}", rule))
 			.collect::<Result<Vec<_>>>()?
 			.into_iter()
@@ -207,7 +207,7 @@ impl super::super::Solution for Solution
 
 		let rule0 = rules.get(&0).ok_or(Error::AocNoSolution)?;
 
-		let count = parts.next().ok_or(Error::AocParseError)?.lines()
+		let count = parts.next().ok_or(Error::AocParsing)?.lines()
 			.inspect(|line| debug!("validating against rule0: {}", line))
 			.filter(|line| rule0.validate(&rules,line).iter().any(|s| s.is_empty()))
 			.inspect(|line| debug!("passed validation: {}", line))

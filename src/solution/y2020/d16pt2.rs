@@ -63,7 +63,7 @@ impl std::str::FromStr for Rule
 					{
 						if vec.len() != 2
 						{
-							bail!(Error::AocParseError);
+							bail!(Error::AocParsing);
 						}
 						Ok(vec[0]..=vec[1])
 					})
@@ -90,19 +90,19 @@ impl super::super::Solution for Solution
 	{
 		let mut parts = self.input.split("\n\n");
 
-		let rules = parts.next().ok_or(Error::AocParseError)?.lines()
+		let rules = parts.next().ok_or(Error::AocParsing)?.lines()
 			.map(|line|
 			{
 				let mut split = line.splitn(2,": ");
-				let name = split.next().ok_or(Error::AocParseError)?;
-				let rule = split.next().ok_or(Error::AocParseError)?.parse::<Rule>()?;
+				let name = split.next().ok_or(Error::AocParsing)?;
+				let rule = split.next().ok_or(Error::AocParsing)?.parse::<Rule>()?;
 				Ok((name,rule))
 			})
 			.collect::<Result<std::collections::HashMap<_,_>>>()?;
 
-		let my_ticket = parts.next().ok_or(Error::AocParseError)?.lines().nth(1).ok_or(Error::AocParseError)?.parse::<Ticket>()?;
+		let my_ticket = parts.next().ok_or(Error::AocParsing)?.lines().nth(1).ok_or(Error::AocParsing)?.parse::<Ticket>()?;
 
-		let tickets = parts.next().ok_or(Error::AocParseError)?.lines().skip(1)
+		let tickets = parts.next().ok_or(Error::AocParsing)?.lines().skip(1)
 			.map(|line| Ok(line.parse::<Ticket>()?))
 			.collect::<Result<Vec<Ticket>>>()?
 			.into_iter()
@@ -149,7 +149,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		Ok(format!("{}", mapping.into_iter().filter(|(name,_)| name.starts_with("departure")).map(|(_,idx)| Ok(my_ticket.0.get(idx).ok_or(Error::AocParseError)?)).collect::<Result<Vec<_>>>()?.into_iter().product::<usize>()))
+		Ok(format!("{}", mapping.into_iter().filter(|(name,_)| name.starts_with("departure")).map(|(_,idx)| Ok(my_ticket.0.get(idx).ok_or(Error::AocParsing)?)).collect::<Result<Vec<_>>>()?.into_iter().product::<usize>()))
 	}
 }
 

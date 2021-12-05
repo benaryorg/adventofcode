@@ -71,15 +71,15 @@ impl super::super::Solution for Solution
 
 		for line in self.input.lines()
 		{
-			let (command, amount) = line.split_at(line.find(' ').ok_or(Error::AocParseError).context("input string does not contain space")?);
-			let amount = amount.strip_prefix(' ').unwrap().parse().context(Error::AocParseError).context("amount was not a number")?;
+			let (command, amount) = line.split_at(line.find(' ').ok_or(Error::AocParsing).context("input string does not contain space")?);
+			let amount = amount.strip_prefix(' ').unwrap().parse().context(Error::AocParsing).context("amount was not a number")?;
 
 			match command
 			{
 				"forward" => sub.forward(amount),
 				"up" => sub.up(amount),
 				"down" => sub.down(amount),
-				_ => return Err(Error::AocParseError).with_context(|| anyhow!("unknown command issued: '{}'", command)),
+				_ => return Err(Error::AocParsing).with_context(|| anyhow!("unknown command issued: '{}'", command)),
 			}
 		}
 

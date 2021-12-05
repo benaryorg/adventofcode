@@ -136,16 +136,16 @@ fn get_10array<I: IntoIterator<Item=T>,T>(iter: I) -> Result<[T;10]>
 {
 	let mut iter = iter.into_iter();
 	Ok([
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
-		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
+		iter.next().ok_or(Error::AocParsing)?,
 	])
 }
 
@@ -240,7 +240,7 @@ impl super::super::Solution for Solution
 			.map(|split|
 			{
 				let mut lines = split.lines();
-				let header = lines.next().ok_or(Error::AocParseError)?;
+				let header = lines.next().ok_or(Error::AocParsing)?;
 				let id = header.chars().skip(5).take(4).collect::<String>().parse()?;
 				let grid = get_10array(lines
 					.map(|line|

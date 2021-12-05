@@ -51,7 +51,7 @@ impl std::str::FromStr for Seat
 		lazy_static::lazy_static! {
 			static ref RE: regex::Regex = regex::Regex::new(r"\A(?P<row>[FB]{7})(?P<column>[LR]{3})\z").unwrap();
 		}
-		let captures = RE.captures(input).ok_or(Error::AocParseError)?;
+		let captures = RE.captures(input).ok_or(Error::AocParsing)?;
 		let row = captures.name("row").unwrap().as_str()
 			.chars()
 			.rev()

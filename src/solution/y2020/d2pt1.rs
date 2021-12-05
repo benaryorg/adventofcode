@@ -75,14 +75,14 @@ impl super::super::Solution for Solution
 			.map(|s|
 			{
 				let mut parts = s.split_whitespace();
-				let range = parts.next().ok_or(Error::AocParseError)?;
+				let range = parts.next().ok_or(Error::AocParsing)?;
 				let range = range.split('-').collect::<Vec<_>>();
-				if range.len() != 2 { bail!(Error::AocParseError); }
+				if range.len() != 2 { bail!(Error::AocParsing); }
 				let range = range[0].parse::<usize>()?..=range[1].parse()?;
-				let ch = parts.next().ok_or(Error::AocParseError)?;
-				let ch = ch.chars().next().ok_or(Error::AocParseError)?;
-				let password = parts.next().ok_or(Error::AocParseError)?;
-				if parts.next() != None { bail!(Error::AocParseError); }
+				let ch = parts.next().ok_or(Error::AocParsing)?;
+				let ch = ch.chars().next().ok_or(Error::AocParsing)?;
+				let password = parts.next().ok_or(Error::AocParsing)?;
+				if parts.next() != None { bail!(Error::AocParsing); }
 				Ok((PasswordPolicy::from((range,ch)),password.to_string()))
 			})
 			.collect::<Result<Vec<(PasswordPolicy<_>,String)>>>()?;

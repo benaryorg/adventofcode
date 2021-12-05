@@ -48,7 +48,7 @@ impl super::super::Solution for Solution
 				{
 					'0' => false,
 					'1' => true,
-					_ => Err(Error::AocParseError).context("bit was neither 0 nor 1")?,
+					_ => Err(Error::AocParsing).context("bit was neither 0 nor 1")?,
 				};
 
 				*map.entry(pos).or_default() += if value { 1 } else { -1 };

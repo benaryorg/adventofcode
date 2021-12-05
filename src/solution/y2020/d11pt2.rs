@@ -115,7 +115,7 @@ impl std::str::FromStr for State
 						'.' => None,
 						'L' => Some(false),
 						'#' => Some(true),
-						_ => bail!(Error::AocParseError),
+						_ => bail!(Error::AocParsing),
 					}))
 					.collect::<Result<Vec<_>>>()
 			})

@@ -52,7 +52,7 @@ impl std::str::FromStr for Recipe
 	{
 		let result = recipe(input)
 			.map_err(|err| anyhow!("{}", err))
-			.context(Error::AocParseError)?
+			.context(Error::AocParsing)?
 			.1;
 		Ok(result)
 	}

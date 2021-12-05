@@ -60,11 +60,11 @@ impl super::super::Solution for Solution
 
 		let mut lines = self.input.lines();
 		const SUBJECT: usize = 7;
-		let card_pub = lines.next().ok_or(Error::AocParseError)?.parse()?;
-		let door_pub = lines.next().ok_or(Error::AocParseError)?.parse()?;
+		let card_pub = lines.next().ok_or(Error::AocParsing)?.parse()?;
+		let door_pub = lines.next().ok_or(Error::AocParsing)?.parse()?;
 		if lines.next() != None
 		{
-			bail!(Error::AocParseError);
+			bail!(Error::AocParsing);
 		}
 
 		let card_loop = transform(SUBJECT).enumerate().find(|&(_,value)| value == card_pub).ok_or(Error::AocNoSolution)?.0;

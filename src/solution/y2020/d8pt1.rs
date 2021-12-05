@@ -50,7 +50,7 @@ impl std::str::FromStr for Instruction
 			("jmp",i) => Instruction::Jmp(i),
 			("acc",i) => Instruction::Acc(i),
 			("nop",_) => Instruction::Nop,
-			_ => return Err(Error::AocParseError),
+			_ => return Err(Error::AocParsing),
 		})
 	}
 }

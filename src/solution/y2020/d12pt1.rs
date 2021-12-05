@@ -150,7 +150,7 @@ impl std::str::FromStr for Action
 			Some('F') => Forward(number),
 			Some('L') => Rotate(-number),
 			Some('R') => Rotate(number),
-			_ => return Err(Error::AocParseError),
+			_ => return Err(Error::AocParsing),
 		})
 	}
 }

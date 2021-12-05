@@ -46,16 +46,16 @@ impl super::super::Solution for Solution
 					{
 						'0' => Ok(false),
 						'1' => Ok(true),
-						_ => Err(Error::AocParseError).context("bit was neither 0 nor 1"),
+						_ => Err(Error::AocParsing).context("bit was neither 0 nor 1"),
 					})
 					.collect::<std::result::Result<Vec<bool>, anyhow::Error>>()
 			})
-			.collect::<std::result::Result<Vec<Vec<bool>>, anyhow::Error>>().context(Error::AocParseError)?;
+			.collect::<std::result::Result<Vec<Vec<bool>>, anyhow::Error>>().context(Error::AocParsing)?;
 
-		let len = numbers.first().ok_or(Error::AocParseError).context("no numbers found")?.len();
+		let len = numbers.first().ok_or(Error::AocParsing).context("no numbers found")?.len();
 		if numbers.iter().any(|v| v.len() < len)
 		{
-			return Err(Error::AocParseError).context("missing bits");
+			return Err(Error::AocParsing).context("missing bits");
 		}
 		let mut co2 = numbers.clone();
 		let mut o2 = numbers;
@@ -87,9 +87,9 @@ impl super::super::Solution for Solution
 		debug!("co2 = {:?}", co2);
 		debug!("o2 = {:?}", o2);
 
-		let co2_num = co2.first().ok_or(Error::AocParseError).context("no numbers left")?
+		let co2_num = co2.first().ok_or(Error::AocParsing).context("no numbers left")?
 			.into_iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
-		let o2_num = o2.first().ok_or(Error::AocParseError).context("no numbers left")?
+		let o2_num = o2.first().ok_or(Error::AocParsing).context("no numbers left")?
 			.into_iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
 
 		Ok(format!("{}", o2_num*co2_num))

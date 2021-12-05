@@ -45,11 +45,11 @@ impl super::super::Solution for Solution
 
 		let mut parts = self.input.split("\n\n");
 
-		let mut player1 = parts.next().ok_or(Error::AocParseError)?.lines()
+		let mut player1 = parts.next().ok_or(Error::AocParsing)?.lines()
 			.skip(1)
 			.map(|s| Ok(s.parse::<usize>()?))
 			.collect::<Result<std::collections::VecDeque<_>>>()?;
-		let mut player2 = parts.next().ok_or(Error::AocParseError)?.lines()
+		let mut player2 = parts.next().ok_or(Error::AocParsing)?.lines()
 			.skip(1)
 			.map(|s| Ok(s.parse::<usize>()?))
 			.collect::<Result<std::collections::VecDeque<_>>>()?;

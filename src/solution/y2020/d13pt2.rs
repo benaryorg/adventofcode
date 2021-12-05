@@ -54,9 +54,9 @@ impl super::super::Solution for Solution
 	fn solve(&self) -> Result<String>
 	{
 		let mut lines = self.input.lines();
-		let _ = lines.next().ok_or(Error::AocParseError)?;
+		let _ = lines.next().ok_or(Error::AocParsing)?;
 		let mut busses = lines.next()
-			.ok_or(Error::AocParseError)?
+			.ok_or(Error::AocParsing)?
 			.split(',')
 			.enumerate()
 			.filter(|&(_,id)| id != "x")

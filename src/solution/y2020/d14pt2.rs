@@ -79,7 +79,7 @@ impl std::str::FromStr for Mask
 				'1' => one |= 1,
 				'0' => zero |= 1,
 				'X' => {},
-				_ => return Err(Error::AocParseError),
+				_ => return Err(Error::AocParsing),
 			}
 		}
 
@@ -96,7 +96,7 @@ impl super::super::Solution for Solution
 			{
 				if next.starts_with("mask =")
 				{
-					(acc, next.split('=').nth(1).ok_or(Error::AocParseError).unwrap().trim().parse().unwrap())
+					(acc, next.split('=').nth(1).ok_or(Error::AocParsing).unwrap().trim().parse().unwrap())
 				}
 				else
 				{
@@ -104,7 +104,7 @@ impl super::super::Solution for Solution
 					{
 						static ref RE: regex::Regex = regex::Regex::new(r"\Amem\[(?P<key>\d+)\] = (?P<value>\d+)\z").unwrap();
 					}
-					let captures = RE.captures(next).ok_or(Error::AocParseError).unwrap();
+					let captures = RE.captures(next).ok_or(Error::AocParsing).unwrap();
 					let key = captures.name("key").unwrap().as_str().parse().unwrap();
 					let value = captures.name("value").unwrap().as_str().parse().unwrap();
 					for key in mask.apply(key)

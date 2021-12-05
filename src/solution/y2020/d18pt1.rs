@@ -104,7 +104,7 @@ impl super::super::Solution for Solution
 					.filter(|ch| !ch.is_ascii_whitespace())
 					.collect::<String>()
 			})
-			.map(|slice| Ok(parenthesis(slice.as_str()).map_err(|_| Error::AocParseError)?.1))
+			.map(|slice| Ok(parenthesis(slice.as_str()).map_err(|_| Error::AocParsing)?.1))
 			.collect::<Result<Vec<isize>>>()?
 			.into_iter()
 			.sum::<isize>();
