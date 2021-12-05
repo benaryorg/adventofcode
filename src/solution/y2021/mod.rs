@@ -1,5 +1,7 @@
 mod d1pt1;
 pub use d1pt1::Solution as D1Pt1;
+mod d1pt2;
+pub use d1pt2::Solution as D1Pt2;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
@@ -13,7 +15,9 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 	let days: Vec<Option<InputType>> = vec!
 	[
 		Some(InputType::UrlInput(Box::new(|input| Box::new(D1Pt1::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(D1Pt2::new(input.expect("empty input received")))))),
 	];
+
 	days.into_iter()
 		.enumerate()
 		.filter_map(|(idx,opt)| opt.map(|parser| (idx,parser)))
