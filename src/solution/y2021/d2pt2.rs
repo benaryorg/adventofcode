@@ -3,7 +3,7 @@ use crate::error::*;
 /// # Examples
 ///
 /// ```
-/// # use adventofcode::solution::{ y2021::d2pt1::Solution, Solution as S };
+/// # use adventofcode::solution::{ y2021::d2pt2::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "forward 5\n\
 ///     down 5\n\
@@ -11,7 +11,7 @@ use crate::error::*;
 ///     up 3\n\
 ///     down 8\n\
 ///     forward 2";
-/// assert_eq!(Solution::new(input.to_string()).solve().unwrap(), "150");
+/// assert_eq!(Solution::new(input.to_string()).solve().unwrap(), "900");
 /// ```
 pub struct Solution
 {
@@ -31,6 +31,7 @@ struct Sub
 {
 	pos_x: isize,
 	pos_y: isize,
+	aim: isize,
 }
 
 impl Sub
@@ -38,16 +39,17 @@ impl Sub
 	fn forward(&mut self, amount: isize)
 	{
 		self.pos_x += amount;
+		self.pos_y += self.aim * amount;
 	}
 
 	fn up(&mut self, amount: isize)
 	{
-		self.pos_y += amount;
+		self.aim += amount;
 	}
 
 	fn down(&mut self, amount: isize)
 	{
-		self.pos_y -= amount;
+		self.aim -= amount;
 	}
 
 	fn depth(&self) -> isize
@@ -81,6 +83,8 @@ impl super::super::Solution for Solution
 				"down" => sub.down(amount),
 				_ => return Err(Error::AocParseError).with_context(|| anyhow!("unknown command issued: '{}'", command)),
 			}
+
+			debug!("{:#?}", sub);
 		}
 
 		Ok(format!("{}", sub.depth()*sub.distance()))
