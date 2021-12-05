@@ -43,7 +43,7 @@ enum Instruction
 impl std::str::FromStr for Instruction
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		let parts = input.split_whitespace().take(2).collect::<Vec<_>>();
 		Ok(match (parts[0],parts[1].parse()?)
@@ -51,7 +51,7 @@ impl std::str::FromStr for Instruction
 			("jmp",i) => Instruction::Jmp(i),
 			("acc",i) => Instruction::Acc(i),
 			("nop",i) => Instruction::Nop(i),
-			_ => bail!(ErrorKind::ParseError),
+			_ => return Err(Error::AocParseError),
 		})
 	}
 }
@@ -65,7 +65,7 @@ impl super::super::Solution for Solution
 
 		let code = self.input.lines()
 			.map(|line| line.parse::<Instruction>())
-			.collect::<Result<Vec<_>>>()?;
+			.collect::<std::result::Result<Vec<_>, Error>>()?;
 
 		for (idx,inst) in code.iter().enumerate()
 		{
@@ -113,7 +113,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		bail!(ErrorKind::NoSolution);
+		bail!(Error::AocNoSolution);
 	}
 }
 

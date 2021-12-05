@@ -64,7 +64,7 @@ impl super::super::Solution for Solution
 					.find(|&needle| haystack.contains(&(result - needle)))
 					.is_none()
 			})
-			.ok_or(ErrorKind::NoSolution)?.last().unwrap();
+			.ok_or(Error::AocNoSolution)?.last().unwrap();
 
 		for idx in 0..numbers.len()
 		{
@@ -88,7 +88,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		bail!(ErrorKind::NoSolution);
+		bail!(Error::AocNoSolution);
 	}
 }
 

@@ -60,22 +60,22 @@ impl super::super::Solution for Solution
 
 		let mut lines = self.input.lines();
 		const SUBJECT: usize = 7;
-		let card_pub = lines.next().ok_or(ErrorKind::ParseError)?.parse()?;
-		let door_pub = lines.next().ok_or(ErrorKind::ParseError)?.parse()?;
+		let card_pub = lines.next().ok_or(Error::AocParseError)?.parse()?;
+		let door_pub = lines.next().ok_or(Error::AocParseError)?.parse()?;
 		if lines.next() != None
 		{
-			bail!(ErrorKind::ParseError);
+			bail!(Error::AocParseError);
 		}
 
-		let card_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != card_pub).next().ok_or(ErrorKind::NoSolution)?.0;
-		let door_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != door_pub).next().ok_or(ErrorKind::NoSolution)?.0;
+		let card_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != card_pub).next().ok_or(Error::AocNoSolution)?.0;
+		let door_loop = transform(SUBJECT).enumerate().skip_while(|&(_,value)| value != door_pub).next().ok_or(Error::AocNoSolution)?.0;
 
-		let card_enc_key = transform(door_pub).skip(card_loop).next().ok_or(ErrorKind::NoSolution)?;
-		let door_enc_key = transform(card_pub).skip(door_loop).next().ok_or(ErrorKind::NoSolution)?;
+		let card_enc_key = transform(door_pub).skip(card_loop).next().ok_or(Error::AocNoSolution)?;
+		let door_enc_key = transform(card_pub).skip(door_loop).next().ok_or(Error::AocNoSolution)?;
 
 		if card_enc_key != door_enc_key
 		{
-			bail!(ErrorKind::NoSolution);
+			bail!(Error::AocNoSolution);
 		}
 
 		let enc_key = card_enc_key;

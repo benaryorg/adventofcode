@@ -30,15 +30,15 @@ impl super::super::Solution for Solution
 	fn solve(&self) -> Result<String>
 	{
 		let mut lines = self.input.lines();
-		let start_time = lines.next().ok_or(ErrorKind::ParseError)?.parse::<usize>()?;
+		let start_time = lines.next().ok_or(Error::AocParseError)?.parse::<usize>()?;
 		let busses = lines.next()
-			.ok_or(ErrorKind::ParseError)?
+			.ok_or(Error::AocParseError)?
 			.split(",")
 			.filter(|&id| id != "x")
 			.map(|id| Ok(id.parse::<usize>()?))
 			.collect::<Result<Vec<_>>>()?;
 
-		let bus = busses.into_iter().min_by_key(|id| id - start_time % id).ok_or(ErrorKind::NoSolution)?;
+		let bus = busses.into_iter().min_by_key(|id| id - start_time % id).ok_or(Error::AocNoSolution)?;
 
 		Ok(format!("{}", (bus - start_time % bus) * bus))
 	}

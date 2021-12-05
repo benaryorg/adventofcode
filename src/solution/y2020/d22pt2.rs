@@ -135,11 +135,11 @@ impl super::super::Solution for Solution
 
 		let mut parts = self.input.split("\n\n");
 
-		let player1 = parts.next().ok_or(ErrorKind::ParseError)?.lines()
+		let player1 = parts.next().ok_or(Error::AocParseError)?.lines()
 			.skip(1)
 			.map(|s| Ok(s.parse::<usize>()?))
 			.collect::<Result<Deck>>()?;
-		let player2 = parts.next().ok_or(ErrorKind::ParseError)?.lines()
+		let player2 = parts.next().ok_or(Error::AocParseError)?.lines()
 			.skip(1)
 			.map(|s| Ok(s.parse::<usize>()?))
 			.collect::<Result<Deck>>()?;

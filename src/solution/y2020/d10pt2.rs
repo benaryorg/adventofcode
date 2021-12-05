@@ -63,7 +63,7 @@ impl super::super::Solution for Solution
 			.map(|line| Ok(line.parse()?))
 			.collect::<Result<std::collections::BTreeSet<usize>>>()?;
 
-		let device = adapters.iter().max().ok_or(ErrorKind::NoSolution)? + 3;
+		let device = adapters.iter().max().ok_or(Error::AocNoSolution)? + 3;
 
 		let diffs = std::iter::once(&0)
 			.chain(adapters.iter())

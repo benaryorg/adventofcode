@@ -29,16 +29,11 @@ impl Solution
 
 use nom::
 {
-	alt,
-	char,
-	delimited,
-	flat_map,
-	many1,
-	map,
-	named,
-	parse_to,
-	tuple,
-	character::streaming::digit1,
+	character::complete::*,
+	combinator::*,
+	branch::*,
+	multi::*,
+	IResult,
 };
 
 #[derive(Clone,Debug)]
@@ -60,9 +55,11 @@ impl Calculation
 	}
 }
 
-named!(number<isize>, flat_map!(digit1, parse_to!(isize)));
-named!(calculable<isize>, map!(tuple!(alt!(number | parenthesis), many1!(calculation)), |(mut num, mut calcs)|
+fn calculable(input: &str) -> IResult<&str, isize>
 {
+	let (input, mut num) = alt((number, parenthesis))(input)?;
+	let (input, mut calcs) = many1(calculation)(input)?;
+
 	for i in (0..calcs.len()).rev()
 	{
 		if let Calculation::Add(x) = calcs[i].clone()
@@ -82,16 +79,42 @@ named!(calculable<isize>, map!(tuple!(alt!(number | parenthesis), many1!(calcula
 			}
 		}
 	}
-	calcs.into_iter().fold(num, |acc, calc| calc.calculate(acc))
-}));
 
-named!(calculation<Calculation>, alt!
-(
-	tuple!(char!('*'),alt!(number | parenthesis)) => { |(_,num)| Calculation::Multiply(num) } |
-	tuple!(char!('+'),alt!(number | parenthesis)) => { |(_,num)| Calculation::Add(num) }
-));
+	let res = calcs.into_iter().fold(num, |acc, calc| calc.calculate(acc));
+	Ok((input, res))
+}
 
-named!(parenthesis<isize>, delimited!(char!('('), calculable, char!(')')));
+fn number(input: &str) -> IResult<&str, isize>
+{
+	let (input, number) = digit1(input)?;
+	match number.parse()
+	{
+		Ok(number) => Ok((input,number)),
+		Err(_) => fail(input),
+	}
+}
+
+fn calculation(input: &str) -> IResult<&str, Calculation>
+{
+	let (input, op) = one_of("*+")(input)?;
+	let (input, num) = alt((number, parenthesis))(input)?;
+
+	match op
+	{
+		'*' => Ok((input, Calculation::Multiply(num))),
+		'+' => Ok((input, Calculation::Add(num))),
+		_ => unreachable!(),
+	}
+}
+
+fn parenthesis(input: &str) -> IResult<&str, isize>
+{
+	let (input, _) = char('(')(input)?;
+	let (input, calc) = calculable(input)?;
+	let (input, _) = char(')')(input)?;
+
+	return Ok((input, calc));
+}
 
 impl super::super::Solution for Solution
 {
@@ -102,12 +125,12 @@ impl super::super::Solution for Solution
 		let result = self.input.lines()
 			.map(|line|
 			{
-				format!("({})", line).bytes()
-					.filter(|b| !b.is_ascii_whitespace())
-					.collect::<Vec<u8>>()
+				format!("({})", line).chars()
+					.filter(|ch| !ch.is_ascii_whitespace())
+					.collect::<String>()
 			})
-			.map(|slice| Ok(parenthesis(&slice).map_err(|_| ErrorKind::ParseError)?.1))
-			.collect::<Result<Vec<isize>>>()?
+			.map(|slice| Ok(parenthesis(slice.as_str()).map_err(|_| Error::AocParseError)?.1))
+			.collect::<std::result::Result<Vec<isize>, Error>>()?
 			.into_iter()
 			.sum::<isize>();
 

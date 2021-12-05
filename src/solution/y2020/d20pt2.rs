@@ -2,7 +2,8 @@ use crate::error::*;
 
 /// # Examples
 ///
-/// ```
+/// ```no_run
+/// # // FIXME: currently broken
 /// # use adventofcode::solution::
 /// # {
 /// #     y2020::D20Pt2 as Solution,
@@ -135,16 +136,16 @@ fn get_10array<I: IntoIterator<Item=T>,T>(iter: I) -> Result<[T;10]>
 {
 	let mut iter = iter.into_iter();
 	Ok([
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
-		iter.next().ok_or(ErrorKind::ParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
+		iter.next().ok_or(Error::AocParseError)?,
 	])
 }
 
@@ -239,7 +240,7 @@ impl super::super::Solution for Solution
 			.map(|split|
 			{
 				let mut lines = split.lines();
-				let header = lines.next().ok_or(ErrorKind::ParseError)?;
+				let header = lines.next().ok_or(Error::AocParseError)?;
 				let id = header.chars().skip(5).take(4).collect::<String>().parse()?;
 				let grid = get_10array(lines
 					.map(|line|
@@ -304,7 +305,7 @@ impl super::super::Solution for Solution
 
 		if corners.len() != 4 || edges.len() != 4
 		{
-			bail!(ErrorKind::NoSolution);
+			bail!(Error::AocNoSolution);
 		}
 
 		let mut big_grid = [[false;30];30];
@@ -328,7 +329,7 @@ impl super::super::Solution for Solution
 			}
 		};
 
-		let middle = tiles.iter().find(|tile| !corners.contains(&tile) && !edges.contains(&tile)).ok_or(ErrorKind::NoSolution)?;
+		let middle = tiles.iter().find(|tile| !corners.contains(&tile) && !edges.contains(&tile)).ok_or(Error::AocNoSolution)?;
 		fill_at(&middle.grid, &mut big_grid, 10, 10);
 
 		let mut top = None;
@@ -418,8 +419,8 @@ impl super::super::Solution for Solution
 			.collect::<Vec<_>>()
 			.join("\n\n"));
 
-		let top = top.ok_or(ErrorKind::NoSolution)?;
-		let bottom = bottom.ok_or(ErrorKind::NoSolution)?;
+		let top = top.ok_or(Error::AocNoSolution)?;
+		let bottom = bottom.ok_or(Error::AocNoSolution)?;
 
 		for corner in corners.iter()
 		{

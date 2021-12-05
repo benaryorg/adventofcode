@@ -1,30 +1,40 @@
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate log;
-
 pub mod error
 {
-	error_chain!
+	pub use ::
 	{
-		links
+		anyhow::
 		{
-		}
+			anyhow,
+			bail,
+			Context,
+			Result,
+		},
+		log::*,
+	};
 
-		foreign_links
-		{
-			Io(::std::io::Error);
-			Parse(::std::string::ParseError);
-			ParseInt(::std::num::ParseIntError);
-			Reqwest(::reqwest::Error);
-		}
+	use thiserror::Error as ThisError;
 
-		errors
-		{
-			NoSolution {}
-			ParseError {}
-			HttpError {}
-		}
+	#[derive(ThisError,Debug)]
+	pub enum Error
+	{
+		#[error("command line parsing failure")]
+		CommandLineParsing(#[from] ::clap::Error),
+		#[error("general io error")]
+		Io(#[from] ::std::io::Error),
+		#[error("string parsing error")]
+		StringParsing(#[from] ::std::string::ParseError),
+		#[error("number parsing error")]
+		NumberParsing(#[from] ::std::num::ParseIntError),
+		#[error("http error")]
+		Reqwest(#[from] ::reqwest::Error),
+		#[error("generic anyhow error")]
+		Anyhow(#[from] ::anyhow::Error),
+		#[error("response code of request was not successful")]
+		HttpError,
+		#[error("no solution was found for the aoc input")]
+		AocNoSolution,
+		#[error("aoc input could not be parsed")]
+		AocParseError,
 	}
 }
 

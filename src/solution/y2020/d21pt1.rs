@@ -48,11 +48,11 @@ impl std::str::FromStr for Recipe
 {
 	type Err = Error;
 
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		let result = recipe(input)
-			.map_err(|err| -> Error { format!("{}", err).into() })
-			.chain_err(|| ErrorKind::ParseError)?
+			.map_err(|err| anyhow!("{}", err))
+			.context(Error::AocParseError)?
 			.1;
 		Ok(result)
 	}
@@ -91,7 +91,7 @@ impl super::super::Solution for Solution
 
 		let recipes = self.input.lines()
 			.map(|line| line.parse::<Recipe>())
-			.collect::<Result<Vec<_>>>()?;
+			.collect::<std::result::Result<Vec<_>, Error>>()?;
 
 		let mut unmatched = recipes.clone();
 

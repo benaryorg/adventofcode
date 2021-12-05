@@ -61,9 +61,9 @@ struct Position(isize,isize);
 impl std::str::FromStr for Position
 {
 	type Err = Error;
-	fn from_str(s: &str) -> Result<Self>
+	fn from_str(s: &str) -> std::result::Result<Self, Error>
 	{
-		let (_, directions) = complete(many1(direction))(s).map_err(|e| Error::from(format!("{}",e))).chain_err(|| ErrorKind::ParseError)?;
+		let (_, directions) = complete(many1(direction))(s).map_err(|e| anyhow!("{}", e)).context(Error::AocParseError)?;
 		let (x,y) = directions.into_iter()
 			.fold((0,0),|(x,y), dir|
 			{

@@ -28,16 +28,11 @@ impl Solution
 
 use nom::
 {
-	alt,
-	char,
-	delimited,
-	flat_map,
-	fold_many0,
-	named,
-	parse_to,
-	switch,
-	tuple,
-	character::streaming::digit1,
+	character::complete::*,
+	combinator::*,
+	branch::*,
+	multi::*,
+	IResult,
 };
 
 enum Calculation
@@ -58,16 +53,43 @@ impl Calculation
 	}
 }
 
-named!(number<isize>, flat_map!(digit1, parse_to!(isize)));
-named!(calculable<isize>, switch!(alt!(number | parenthesis), num => fold_many0!(calculation, num, |num,calc| calc.calculate(num))));
+fn number(input: &str) -> IResult<&str, isize>
+{
+	let (input, number) = digit1(input)?;
+	match number.parse()
+	{
+		Ok(number) => Ok((input,number)),
+		Err(_) => fail(input),
+	}
+}
 
-named!(calculation<Calculation>, alt!
-(
-	tuple!(char!('*'),alt!(number | parenthesis)) => { |(_,num)| Calculation::Multiply(num) } |
-	tuple!(char!('+'),alt!(number | parenthesis)) => { |(_,num)| Calculation::Add(num) }
-));
+fn calculable(input: &str) -> IResult<&str, isize>
+{
+	let (input, num) = alt((parenthesis, number))(input)?;
+	fold_many0(calculation, move || num, |num, calc| calc.calculate(num))(input)
+}
 
-named!(parenthesis<isize>, delimited!(char!('('), calculable, char!(')')));
+fn calculation(input: &str) -> IResult<&str, Calculation>
+{
+	let (input, op) = one_of("*+")(input)?;
+	let (input, num) = alt((number, parenthesis))(input)?;
+
+	match op
+	{
+		'*' => Ok((input, Calculation::Multiply(num))),
+		'+' => Ok((input, Calculation::Add(num))),
+		_ => unreachable!(),
+	}
+}
+
+fn parenthesis(input: &str) -> IResult<&str, isize>
+{
+	let (input, _) = char('(')(input)?;
+	let (input, calc) = calculable(input)?;
+	let (input, _) = char(')')(input)?;
+
+	return Ok((input, calc));
+}
 
 impl super::super::Solution for Solution
 {
@@ -78,11 +100,11 @@ impl super::super::Solution for Solution
 		let result = self.input.lines()
 			.map(|line|
 			{
-				format!("({})", line).bytes()
-					.filter(|b| !b.is_ascii_whitespace())
-					.collect::<Vec<u8>>()
+				format!("({})", line).chars()
+					.filter(|ch| !ch.is_ascii_whitespace())
+					.collect::<String>()
 			})
-			.map(|slice| Ok(parenthesis(&slice).map_err(|_| ErrorKind::ParseError)?.1))
+			.map(|slice| Ok(parenthesis(slice.as_str()).map_err(|_| Error::AocParseError)?.1))
 			.collect::<Result<Vec<isize>>>()?
 			.into_iter()
 			.sum::<isize>();

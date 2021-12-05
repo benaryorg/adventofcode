@@ -53,7 +53,7 @@ struct Passport
 impl std::str::FromStr for Passport
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		let kv = input.split_whitespace()
 			.flat_map(|part| part.find(':').map(|idx| part.split_at(idx)))
@@ -62,14 +62,14 @@ impl std::str::FromStr for Passport
 
 		Ok(Passport
 		{
-			ecl: kv.get("ecl").ok_or(ErrorKind::ParseError)?.to_string(),
-			pid: kv.get("pid").ok_or(ErrorKind::ParseError)?.to_string(),
-			eyr: kv.get("eyr").ok_or(ErrorKind::ParseError)?.to_string(),
-			hcl: kv.get("hcl").ok_or(ErrorKind::ParseError)?.to_string(),
-			byr: kv.get("byr").ok_or(ErrorKind::ParseError)?.to_string(),
-			iyr: kv.get("iyr").ok_or(ErrorKind::ParseError)?.to_string(),
+			ecl: kv.get("ecl").ok_or(Error::AocParseError)?.to_string(),
+			pid: kv.get("pid").ok_or(Error::AocParseError)?.to_string(),
+			eyr: kv.get("eyr").ok_or(Error::AocParseError)?.to_string(),
+			hcl: kv.get("hcl").ok_or(Error::AocParseError)?.to_string(),
+			byr: kv.get("byr").ok_or(Error::AocParseError)?.to_string(),
+			iyr: kv.get("iyr").ok_or(Error::AocParseError)?.to_string(),
 			cid: kv.get("cid").map(|s| s.to_string()),
-			hgt: kv.get("hgt").ok_or(ErrorKind::ParseError)?.to_string(),
+			hgt: kv.get("hgt").ok_or(Error::AocParseError)?.to_string(),
 		})
 	}
 }

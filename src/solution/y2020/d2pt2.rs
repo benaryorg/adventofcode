@@ -68,14 +68,14 @@ impl super::super::Solution for Solution
 			.map(|s|
 			{
 				let mut parts = s.split_whitespace();
-				let chars = parts.next().ok_or(ErrorKind::ParseError)?;
+				let chars = parts.next().ok_or(Error::AocParseError)?;
 				let chars = chars.split('-').collect::<Vec<_>>();
-				if chars.len() != 2 { bail!(ErrorKind::ParseError); }
+				if chars.len() != 2 { bail!(Error::AocParseError); }
 				let chars = (chars[0].parse::<usize>()?, chars[1].parse()?);
-				let ch = parts.next().ok_or(ErrorKind::ParseError)?;
-				let ch = ch.chars().next().ok_or(ErrorKind::ParseError)?;
-				let password = parts.next().ok_or(ErrorKind::ParseError)?;
-				if parts.next() != None { bail!(ErrorKind::ParseError); }
+				let ch = parts.next().ok_or(Error::AocParseError)?;
+				let ch = ch.chars().next().ok_or(Error::AocParseError)?;
+				let password = parts.next().ok_or(Error::AocParseError)?;
+				if parts.next() != None { bail!(Error::AocParseError); }
 				Ok((PasswordPolicy::from((chars,ch)),password.to_string()))
 			})
 			.collect::<Result<Vec<(PasswordPolicy,String)>>>()?;

@@ -47,7 +47,7 @@ impl super::super::Solution for Solution
 				.collect())
 		})
 			.nth(6)
-			.ok_or(ErrorKind::NoSolution)?
+			.ok_or(Error::AocNoSolution)?
 			.len();
 
 		Ok(format!("{}", count))

@@ -51,7 +51,7 @@ impl Rule
 impl std::str::FromStr for Rule
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		let ranges = input.split(" or ")
 			.map(|string|
@@ -63,12 +63,12 @@ impl std::str::FromStr for Rule
 					{
 						if vec.len() != 2
 						{
-							bail!(ErrorKind::ParseError);
+							bail!(Error::AocParseError);
 						}
 						Ok(vec[0]..=vec[1])
 					})
 			})
-			.collect::<Result<_>>()?;
+			.collect::<Result<_>>().context("parsing for rule")?;
 		Ok(Self { ranges, })
 	}
 }
@@ -78,7 +78,7 @@ struct Ticket(Vec<usize>);
 impl std::str::FromStr for Ticket
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		Ok(Ticket(input.split(',').map(|i| Ok(i.parse()?)).collect::<Result<_>>()?))
 	}
@@ -90,19 +90,19 @@ impl super::super::Solution for Solution
 	{
 		let mut parts = self.input.split("\n\n");
 
-		let rules = parts.next().ok_or(ErrorKind::ParseError)?.lines()
+		let rules = parts.next().ok_or(Error::AocParseError)?.lines()
 			.map(|line|
 			{
 				let mut split = line.splitn(2,": ");
-				let name = split.next().ok_or(ErrorKind::ParseError)?;
-				let rule = split.next().ok_or(ErrorKind::ParseError)?.parse::<Rule>()?;
+				let name = split.next().ok_or(Error::AocParseError)?;
+				let rule = split.next().ok_or(Error::AocParseError)?.parse::<Rule>()?;
 				Ok((name,rule))
 			})
 			.collect::<Result<std::collections::HashMap<_,_>>>()?;
 
-		let my_ticket = parts.next().ok_or(ErrorKind::ParseError)?.lines().nth(1).ok_or(ErrorKind::ParseError)?.parse::<Ticket>()?;
+		let my_ticket = parts.next().ok_or(Error::AocParseError)?.lines().nth(1).ok_or(Error::AocParseError)?.parse::<Ticket>()?;
 
-		let tickets = parts.next().ok_or(ErrorKind::ParseError)?.lines().skip(1)
+		let tickets = parts.next().ok_or(Error::AocParseError)?.lines().skip(1)
 			.map(|line| Ok(line.parse::<Ticket>()?))
 			.collect::<Result<Vec<Ticket>>>()?
 			.into_iter()
@@ -149,7 +149,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		Ok(format!("{}", mapping.into_iter().filter(|(name,_)| name.starts_with("departure")).map(|(_,idx)| Ok(my_ticket.0.get(idx).ok_or(ErrorKind::ParseError)?)).collect::<Result<Vec<_>>>()?.into_iter().product::<usize>()))
+		Ok(format!("{}", mapping.into_iter().filter(|(name,_)| name.starts_with("departure")).map(|(_,idx)| Ok(my_ticket.0.get(idx).ok_or(Error::AocParseError)?)).collect::<Result<Vec<_>>>()?.into_iter().product::<usize>()))
 	}
 }
 

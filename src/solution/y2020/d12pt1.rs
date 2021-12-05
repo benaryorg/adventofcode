@@ -132,7 +132,7 @@ impl Action
 impl std::str::FromStr for Action
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		use Direction::*;
 		use Action::*;
@@ -150,7 +150,7 @@ impl std::str::FromStr for Action
 			Some('F') => Forward(number),
 			Some('L') => Rotate(-number),
 			Some('R') => Rotate(number),
-			_ => bail!(ErrorKind::ParseError),
+			_ => return Err(Error::AocParseError),
 		})
 	}
 }
@@ -163,7 +163,7 @@ impl super::super::Solution for Solution
 
 		let actions = self.input.lines()
 			.map(|line| line.parse())
-			.collect::<Result<Vec<Action>>>()?;
+			.collect::<std::result::Result<Vec<Action>, Error>>()?;
 
 		for action in actions
 		{

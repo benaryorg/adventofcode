@@ -101,7 +101,7 @@ impl State
 impl std::str::FromStr for State
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		let vec = input.lines()
 			.map(|line|
@@ -112,7 +112,7 @@ impl std::str::FromStr for State
 						'.' => None,
 						'L' => Some(false),
 						'#' => Some(true),
-						_ => bail!(ErrorKind::ParseError),
+						_ => bail!(Error::AocParseError),
 					}))
 					.collect::<Result<Vec<_>>>()
 			})

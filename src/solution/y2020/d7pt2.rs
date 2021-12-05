@@ -42,16 +42,16 @@ impl super::super::Solution for Solution
 		let map = self.input.lines()
 			.map(|line|
 			{
-				let idx = line.find(" bags ").ok_or(ErrorKind::ParseError)?;
-				let colour = line.get(..idx).ok_or(ErrorKind::ParseError)?;
-				let rest = line.get((idx+14)..).ok_or(ErrorKind::ParseError)?;
-				let content = rest.strip_suffix('.').ok_or(ErrorKind::ParseError)?.split(", ")
+				let idx = line.find(" bags ").ok_or(Error::AocParseError)?;
+				let colour = line.get(..idx).ok_or(Error::AocParseError)?;
+				let rest = line.get((idx+14)..).ok_or(Error::AocParseError)?;
+				let content = rest.strip_suffix('.').ok_or(Error::AocParseError)?.split(", ")
 					.filter(|&s| s != "no other bags")
 					.map(|bag|
 					{
-						let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(ErrorKind::ParseError)?;
-						let count: usize = content.split(' ').next().ok_or(ErrorKind::ParseError)?.parse()?;
-						let colour = content.splitn(2,' ').skip(1).next().ok_or(ErrorKind::ParseError)?;
+						let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(Error::AocParseError)?;
+						let count: usize = content.split(' ').next().ok_or(Error::AocParseError)?.parse()?;
+						let colour = content.splitn(2,' ').skip(1).next().ok_or(Error::AocParseError)?;
 						Ok((count,colour))
 					})
 					.collect::<Result<Vec<_>>>()?;

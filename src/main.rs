@@ -1,8 +1,3 @@
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate log;
-
 use adventofcode::
 {
 	error::*,
@@ -46,7 +41,7 @@ fn main() -> Result<()>
 			let response = http.get(url).send()?;
 			if !response.status().is_success()
 			{
-				bail!(ErrorKind::HttpError);
+				bail!(Error::HttpError);
 			}
 			println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 

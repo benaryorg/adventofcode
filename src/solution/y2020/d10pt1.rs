@@ -63,7 +63,7 @@ impl super::super::Solution for Solution
 			.map(|line| Ok(line.parse()?))
 			.collect::<Result<std::collections::BTreeSet<usize>>>()?;
 
-		let device = adapters.iter().max().ok_or(ErrorKind::NoSolution)? + 3;
+		let device = adapters.iter().max().ok_or(Error::AocNoSolution)? + 3;
 
 		let mut ones = 0;
 		let mut threes = 0;
@@ -77,7 +77,7 @@ impl super::super::Solution for Solution
 				1 => ones += 1,
 				2 => {},
 				3 => threes += 1,
-				_ => bail!(ErrorKind::NoSolution),
+				_ => bail!(Error::AocNoSolution),
 			}
 		}
 

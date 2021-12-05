@@ -135,7 +135,7 @@ impl super::super::Solution for Solution
 			.take(nums.len() - 1)
 			.collect::<std::collections::BTreeMap<_,_>>();
 		
-		let next = *nums.last().ok_or(ErrorKind::NoSolution)?;
+		let next = *nums.last().ok_or(Error::AocNoSolution)?;
 		let mut turn = nums.len();
 
 		let result = std::iter::successors(Some(next),|&last|
@@ -154,7 +154,7 @@ impl super::super::Solution for Solution
 		})
 			.take(self.iterations + 1 - nums.len())
 			.last()
-			.ok_or(ErrorKind::NoSolution)?;
+			.ok_or(Error::AocNoSolution)?;
 
 		Ok(format!("{}", result))
 	}

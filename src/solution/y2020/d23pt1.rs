@@ -134,7 +134,7 @@ impl super::super::Solution for Solution
 		let result = std::iter::successors(Some(1), |n| Some(cups.get(n-1).unwrap()%cups.len()+1))
 			.skip(1)
 			.take_while(|&i| i != 1)
-			.map(|i| Ok(std::char::from_digit(i as u32,10).ok_or(ErrorKind::ParseError)?))
+			.map(|i| Ok(std::char::from_digit(i as u32,10).ok_or(Error::AocParseError)?))
 			.collect::<Result<String>>()?;
 
 		Ok(result)

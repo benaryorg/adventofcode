@@ -51,7 +51,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		bail!(ErrorKind::NoSolution);
+		bail!(Error::AocNoSolution);
 	}
 }
 

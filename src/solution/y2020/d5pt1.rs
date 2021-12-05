@@ -45,12 +45,12 @@ impl Seat
 impl std::str::FromStr for Seat
 {
 	type Err = Error;
-	fn from_str(input: &str) -> Result<Self>
+	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		lazy_static::lazy_static! {
 			static ref RE: regex::Regex = regex::Regex::new(r"\A(?P<row>[FB]{7})(?P<column>[LR]{3})\z").unwrap();
 		}
-		let captures = RE.captures(input).ok_or(ErrorKind::ParseError)?;
+		let captures = RE.captures(input).ok_or(Error::AocParseError)?;
 		let row = captures.name("row").unwrap().as_str()
 			.chars()
 			.rev()
@@ -81,7 +81,7 @@ impl super::super::Solution for Solution
 			.map(|line| line.parse::<Seat>())
 			.filter_map(Result::ok)
 			.max_by_key(|seat| seat.id())
-			.ok_or(ErrorKind::NoSolution)?;
+			.ok_or(Error::AocNoSolution)?;
 
 		Ok(format!("{}", max_id.id()))
 	}

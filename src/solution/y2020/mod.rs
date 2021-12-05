@@ -101,7 +101,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 	{
 		UrlInput(Box<dyn Fn(Option<String>) -> Box<dyn super::Solution + 'static>>),
 		Parser(Box<dyn super::InputParser<'a>>),
-	};
+	}
 
 	let days: Vec<Option<InputType>> = vec!
 	[
