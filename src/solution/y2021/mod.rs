@@ -6,6 +6,7 @@ pub mod d3pt1;
 pub mod d3pt2;
 pub mod d4pt1;
 pub mod d4pt2;
+pub mod d5;
 pub mod d6;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
@@ -27,7 +28,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d3pt2::Solution::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d4pt1::Solution::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d4pt2::Solution::new(input.expect("empty input received")))))),
-		None,
+		Some(InputType::UrlInput(Box::new(|input| Box::new(d5::Solution::part1(input.expect("empty input received")))))),
 		None,
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d6::Solution::part1(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d6::Solution::part2(input.expect("empty input received")))))),
