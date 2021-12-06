@@ -88,9 +88,9 @@ impl super::super::Solution for Solution
 		debug!("o2 = {:?}", o2);
 
 		let co2_num = co2.first().ok_or(Error::AocParsing).context("no numbers left")?
-			.into_iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
+			.iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
 		let o2_num = o2.first().ok_or(Error::AocParsing).context("no numbers left")?
-			.into_iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
+			.iter().rev().enumerate().fold(0, |acc, (pos, &bit)| acc + ((bit as usize) << pos));
 
 		Ok(format!("{}", o2_num*co2_num))
 	}
