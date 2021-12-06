@@ -56,11 +56,9 @@ impl super::super::Solution for Solution
 
 		for _ in 0..self.days
 		{
-			let mut newtank = tank.clone();
-			let new_fish = newtank.pop_front().unwrap_or(0);
-			newtank.push_back(new_fish);
-			newtank[6] += new_fish;
-			tank = newtank;
+			let new_fish = tank.pop_front().unwrap_or(0);
+			tank.push_back(new_fish);
+			tank[6] += new_fish;
 
 			debug!("{:?}", tank);
 		}
