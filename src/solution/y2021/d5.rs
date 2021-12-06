@@ -26,6 +26,7 @@ use nom::
 ///     0,0 -> 8,8\n\
 ///     5,5 -> 8,2";
 /// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "5");
+/// assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "12");
 /// ```
 pub struct Solution
 {
@@ -54,14 +55,14 @@ impl Solution
 	}
 }
 
-fn parse_line(input: &str) -> IResult<&str, ((usize,usize),(usize,usize))>
+fn parse_line(input: &str) -> IResult<&str, ((isize,isize),(isize,isize))>
 {
 	let (input, (x1, y1)) = separated_pair(double, char(','), double)(input)?;
 	let (input, _) = tag(" -> ")(input)?;
 	let (input, (x2, y2)) = separated_pair(double, char(','), double)(input)?;
 	let (input, _) = eof(input)?;
 
-	Ok((input, ((x1 as usize, y1 as usize), (x2 as usize, y2 as usize))))
+	Ok((input, ((x1 as isize, y1 as isize), (x2 as isize, y2 as isize))))
 }
 
 impl super::super::Solution for Solution
@@ -80,8 +81,8 @@ impl super::super::Solution for Solution
 			.filter(|((x1, y1), (x2, y2))| self.consider_diagonals || x1 == x2 || y1 == y2)
 			.flat_map(|((x1, y1), (x2, y2))|
 			{
-				let values_x = ((x1.min(x2))..=(x1.max(x2))).into_iter().collect::<Vec<_>>();
-				let values_y = ((y1.min(y2))..=(y1.max(y2))).into_iter().collect::<Vec<_>>();
+				let values_x = if x1 < x2 { (x1..=x2).into_iter().collect::<Vec<_>>() } else { (x2..=x1).rev().into_iter().collect::<Vec<_>>() };
+				let values_y = if y1 < y2 { (y1..=y2).into_iter().collect::<Vec<_>>() } else { (y2..=y1).rev().into_iter().collect::<Vec<_>>() };
 
 				if values_x.len() == 1
 				{
@@ -93,7 +94,7 @@ impl super::super::Solution for Solution
 				}
 				values_x.into_iter().zip(values_y).collect::<Vec<_>>()
 			})
-			.fold(std::collections::BTreeMap::<(usize, usize), usize>::new(), |mut map, tuple|
+			.fold(std::collections::BTreeMap::<(isize, isize), isize>::new(), |mut map, tuple|
 			{
 				*map.entry(tuple).or_default() += 1;
 				map

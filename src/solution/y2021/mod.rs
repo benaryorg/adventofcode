@@ -29,7 +29,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d4pt1::Solution::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d4pt2::Solution::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d5::Solution::part1(input.expect("empty input received")))))),
-		None,
+		Some(InputType::UrlInput(Box::new(|input| Box::new(d5::Solution::part2(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d6::Solution::part1(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d6::Solution::part2(input.expect("empty input received")))))),
 	];
