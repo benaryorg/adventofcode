@@ -42,9 +42,13 @@ impl super::super::Solution for Solution
 		{
 			for target in min..=max
 			{
+				// this is the optimized version suitable for debug mode:
 				let distance = source.max(target) - source.min(target);
 				let fuel = (distance * (1 + distance)) / 2;
 				*map.entry(target).or_default() += fuel;
+
+				// this very unoptimized version works, but is super slow on debug mode, however in my limited testing it ran faster than the version above when compiled in release mode:
+				//*map.entry(target).or_default() += (1..=(source.max(target) - source.min(target))).sum::<usize>();
 			}
 		}
 
