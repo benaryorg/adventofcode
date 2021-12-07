@@ -36,25 +36,21 @@ impl super::super::Solution for Solution
 		let min = *positions.iter().min().ok_or(Error::AocNoSolution).context("no minimum")?;
 		let max = *positions.iter().max().ok_or(Error::AocNoSolution).context("no maximum")?;
 
-		let mut map = std::collections::BTreeMap::<usize, usize>::new();
+		let mut vec = vec![0;max - min + 1];
 
 		for source in positions
 		{
 			for target in min..=max
 			{
-				// this is the optimized version suitable for debug mode:
 				let distance = source.max(target) - source.min(target);
 				let fuel = (distance * (1 + distance)) / 2;
-				*map.entry(target).or_default() += fuel;
-
-				// this very unoptimized version works, but is super slow on debug mode, however in my limited testing it ran faster than the version above when compiled in release mode:
-				//*map.entry(target).or_default() += (1..=(source.max(target) - source.min(target))).sum::<usize>();
+				vec[target - min] += fuel;
 			}
 		}
 
-		let min = map.iter().min_by_key(|(_key, value)| *value).ok_or(Error::AocNoSolution).context("no maximum")?;
+		let min = vec.into_iter().min().ok_or(Error::AocNoSolution).context("no maximum")?;
 
-		Ok(format!("{}", min.1))
+		Ok(format!("{}", min))
 	}
 }
 
