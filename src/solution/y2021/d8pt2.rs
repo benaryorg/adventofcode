@@ -64,7 +64,7 @@ impl super::super::Solution for Solution
 				let seg_eg = eight.difference(&four).copied().collect::<Set>().difference(&seven).copied().collect::<Set>();
 				let seg_bd = four.difference(&one).copied().collect::<Set>();
 
-				let five = digits.iter().find(|digit| digit.len() == 5 && digit.is_superset(&seg_bd)).unwrap();
+				let five = digits.iter().find(|digit| digit.len() == 5 && digit.is_superset(&seg_bd)).unwrap().iter().copied().collect::<Set>();
 
 				let seg_c = one.difference(&five).copied().collect::<Set>();
 				let seg_f = one.difference(&seg_c).copied().collect::<Set>();
@@ -85,7 +85,7 @@ impl super::super::Solution for Solution
 
 				let nums = vec![zero, one, two, three, four, five, six, seven, eight, nine];
 
-				let vec = output.iter().map(|digit| nums.iter().position(|num| num.eq(&digit))).collect::<Vec<_>>();
+				let vec = output.iter().map(|digit| nums.iter().position(|num| num.eq(digit))).collect::<Vec<_>>();
 				debug!("{:?}", vec);
 				let vec = vec.into_iter().map(Option::unwrap).collect::<Vec<_>>();
 				format!("{}{}{}{}", vec[0], vec[1], vec[2], vec[3]).parse().context(Error::AocParsing).context("parsing of quad failed")

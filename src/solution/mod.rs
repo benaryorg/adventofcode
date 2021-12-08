@@ -1,4 +1,4 @@
-#![allow(clippy::match_like_matches_macro,clippy::collapsible_else_if)]
+#![allow(clippy::match_like_matches_macro,clippy::collapsible_else_if,clippy::type_complexity)]
 
 pub mod y2020;
 pub mod y2021;

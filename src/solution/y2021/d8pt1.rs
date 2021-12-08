@@ -68,11 +68,8 @@ impl super::super::Solution for Solution
 				output.iter()
 					.filter(|digit|
 					{
-						false
-							|| digit.len() == segments[1].len()
-							|| digit.len() == segments[4].len()
-							|| digit.len() == segments[7].len()
-							|| digit.len() == segments[8].len()
+						let len = digit.len();
+						len == segments[1].len() || len == segments[4].len() || len == segments[7].len() || len == segments[8].len()
 					})
 					.count()
 			})
