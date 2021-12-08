@@ -36,17 +36,27 @@ impl super::super::Solution for Solution
 		let min = *positions.iter().min().ok_or(Error::AocNoSolution).context("no minimum")?;
 		let max = *positions.iter().max().ok_or(Error::AocNoSolution).context("no maximum")?;
 
-		let mut vec = vec![0;max - min + 1];
-
-		for source in positions
-		{
-			for target in min..=max
+		let fuel_usage = (0..(max - min + 1))
+			.into_iter()
+			.scan(0, |state, x|
 			{
-				let distance = source.max(target) - source.min(target);
-				let fuel = (distance * (1 + distance)) / 2;
-				vec[target - min] += fuel;
+				*state += x;
+				Some(*state)
+			})
+			.collect::<Vec<_>>();
+
+		let vec = positions.into_iter().fold(vec![0;max - min + 1], |mut vec, position|
+		{
+			let preceeding = fuel_usage[..position].iter().rev();
+			let succeeding = fuel_usage[1..].iter();
+
+			for (sum, usage) in vec.iter_mut().zip(preceeding.chain(succeeding))
+			{
+				*sum += usage;
 			}
-		}
+
+			vec
+		});
 
 		let min = vec.into_iter().min().ok_or(Error::AocNoSolution).context("no maximum")?;
 
