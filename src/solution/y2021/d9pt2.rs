@@ -93,7 +93,7 @@ impl super::super::Solution for Solution
 			sizes.push(basin.len());
 		}
 
-		sizes.sort();
+		sizes.sort_unstable();
 
 		Ok(format!("{}", sizes.iter().rev().take(3).product::<usize>()))
 	}
