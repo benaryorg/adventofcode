@@ -51,7 +51,7 @@ impl super::super::Solution for Solution
 		//let surround = (-1..1).map(|y| (-1..1).map(|x| (x, y))).collect::<Vec<_>>();
 		let surround = vec!
 		[
-			(-1, 0), //left
+			(-1, 0), // left
 			(0, 1), // top
 			(1, 0), // right
 			(0, -1), // bottom
