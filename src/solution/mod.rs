@@ -1,6 +1,8 @@
 #![allow(clippy::match_like_matches_macro,clippy::collapsible_else_if,clippy::type_complexity)]
 
+#[cfg(feature = "y2020")]
 pub mod y2020;
+#[cfg(feature = "y2021")]
 pub mod y2021;
 
 use crate::error::*;

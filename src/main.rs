@@ -12,9 +12,16 @@ fn main() -> Result<()>
 {
 	env_logger::init();
 
-	let subcommands: std::collections::HashMap<_,_> =
-		solution::y2020::parsers().into_iter()
-			.chain(solution::y2021::parsers().into_iter())
+	let years =
+	[
+		#[cfg(feature = "y2020")]
+		solution::y2020::parsers(),
+		#[cfg(feature = "y2021")]
+		solution::y2021::parsers(),
+	];
+
+	let subcommands: std::collections::HashMap<_,_> = years.iter()
+		.flatten()
 		.map(|command|
 		{
 			(InputParser::usage(command.as_ref()).get_name().to_owned(), command)
