@@ -40,14 +40,14 @@ impl super::super::Solution for Solution
 			.enumerate()
 			.map(|(y, line)|
 			{
-				Ok(line.chars()
+				line.chars()
 					.enumerate()
 					.map(|(x, ch)|
 					{
 						let num = ch.to_digit(10).ok_or(Error::AocParsing)?;
 						Ok(((x as isize, y as isize), (num as usize, false)))
 					})
-					.collect::<Result<Vec<_>>>()?)
+					.collect::<Result<Vec<_>>>()
 			})
 			.collect::<Result<Vec<_>>>()?;
 		let mut map = list.into_iter().flatten().collect::<std::collections::BTreeMap<_, _>>();
@@ -78,7 +78,7 @@ impl super::super::Solution for Solution
 					.map(|(&(x, y), _)| (x, y))
 					.collect::<Vec<_>>();
 
-				for (x, y) in flashes.into_iter()
+				for (x, y) in flashes
 				{
 					surround.iter()
 						.for_each(|(dx, dy)|
