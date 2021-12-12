@@ -57,6 +57,25 @@ impl Solution
 	}
 }
 
+type Cave = (usize, bool);
+type Connection = (Cave, Cave);
+type Path = std::sync::Arc<Vec<Cave>>;
+type Calc = (bool, Path, Connection);
+
+#[derive(Clone)]
+struct Sender
+{
+	tx: std::sync::mpsc::Sender<(Self, Calc)>,
+}
+
+impl Sender
+{
+	fn send(&self, calc: Calc)
+	{
+		self.tx.send((self.clone(), calc)).unwrap();
+	}
+}
+
 impl super::super::Solution for Solution
 {
 	fn solve(&self) -> Result<String>
@@ -91,75 +110,77 @@ impl super::super::Solution for Solution
 		let connections = connections.into_iter()
 			.map(|(a, b)|
 			{
-				let a = translation.get(a).unwrap();
-				let b = translation.get(b).unwrap();
+				let a = *translation.get(a).unwrap();
+				let b = *translation.get(b).unwrap();
 				(a, b)
 			})
 			.collect::<Vec<_>>();
 
-		let mut counter = 0;
-		let mut paths = vec![(false, vec![start])];
-
-		while !paths.is_empty()
+		let (tx, rx) = std::sync::mpsc::channel::<(Sender, Calc)>();
+		let sender = Sender
 		{
-			let mut new_paths = Vec::new();
+			tx: tx.clone(),
+		};
 
-			paths.into_iter()
-				.flat_map(|elem|
+		let iter = rx.into_iter()
+			.filter(|(send, (repeat, path, (a, b))): &(Sender, Calc)|
+			{
+				if path.len() > 1 && (start.eq(&a) || start.eq(&b))
 				{
-					std::iter::repeat(elem)
-						.zip(connections.iter().copied())
-				})
-				.for_each(|((repeat, path), (a, b))|
+					return false;
+				}
+				let current = path.last().copied().unwrap();
+				let next = if current.eq(&a)
 				{
-					if path.len() > 1 && (start.eq(a) || start.eq(b))
+					b
+				}
+				else
+				{
+					if current.eq(&b)
 					{
-						return;
-					}
-					let current = path.last().copied().unwrap();
-					let next = if current.eq(a)
-					{
-						b
+						a
 					}
 					else
 					{
-						if current.eq(b)
-						{
-							a
-						}
-						else
-						{
-							return;
-						}
-					};
-					if end.eq(next)
-					{
-						counter += 1;
-						return;
+						return false;
 					}
-					let repeat = if !next.1
+				};
+				if end.eq(&next)
+				{
+					return true;
+				}
+				let repeat = if !next.1
+				{
+					let max_repeats = if *repeat { 1 } else { 2 };
+					let current_repeats = path.iter().filter(|elem| next.eq(elem)).take(max_repeats).count();
+					if current_repeats >= max_repeats
 					{
-						let max_repeats = if repeat { 1 } else { 2 };
-						let current_repeats = path.iter().filter(|elem| next.eq(elem)).take(max_repeats).count();
-						if current_repeats >= max_repeats
-						{
-							return;
-						}
-						repeat || current_repeats >= 1
+						return false;
 					}
-					else
-					{
-						repeat
-					};
-					let mut path = path.clone();
-					path.push(*next);
-					new_paths.push((repeat, path))
-				});
+					*repeat || current_repeats >= 1
+				}
+				else
+				{
+					*repeat
+				};
+				let mut path = path.as_ref().clone();
+				path.push(*next);
+				let path = std::sync::Arc::new(path.clone());
+				for connection in connections.iter().copied()
+				{
+					send.send((repeat, path.clone(), connection));
+				}
+				false
+			});
 
-			paths = new_paths;
+		for connection in connections.iter().copied()
+		{
+			tx.send((sender.clone(), (false, std::sync::Arc::new(vec![start]), connection))).unwrap();
 		}
+		drop(tx);
+		drop(sender);
 
-		Ok(format!("{}", counter))
+		Ok(format!("{}", iter.count()))
 	}
 }
 
