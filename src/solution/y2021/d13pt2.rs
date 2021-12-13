@@ -3,7 +3,7 @@ use crate::error::*;
 /// # Examples
 ///
 /// ```
-/// # use adventofcode::solution::{ y2021::d12pt2::Solution, Solution as S };
+/// # use adventofcode::solution::{ y2021::d13pt2::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "6,10\n\
 ///     0,14\n\
@@ -27,13 +27,12 @@ use crate::error::*;
 ///     fold along y=7\n\
 ///     fold along x=5";
 /// let output = "\
-///     
-///     
-///     
-///     
-///     
-///     
-///     ";
+/// #   #####|\n\
+/// #   #   #|\n\
+/// #   #   #|\n\
+/// #   #   #|\n\
+/// #   #####|\n\
+/// ";
 /// assert_eq!(Solution::new(input.to_string()).solve().unwrap(), output);
 /// ```
 pub struct Solution
