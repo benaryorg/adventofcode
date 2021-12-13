@@ -125,18 +125,18 @@ impl super::super::Solution for Solution
 		let iter = rx.into_iter()
 			.filter(|(send, (repeat, path, (a, b))): &(Sender, Calc)|
 			{
-				if path.len() > 1 && (start.eq(&a) || start.eq(&b))
+				if path.len() > 1 && (start.eq(a) || start.eq(b))
 				{
 					return false;
 				}
 				let current = path.last().copied().unwrap();
-				let next = if current.eq(&a)
+				let next = if current.eq(a)
 				{
 					b
 				}
 				else
 				{
-					if current.eq(&b)
+					if current.eq(b)
 					{
 						a
 					}
@@ -145,7 +145,7 @@ impl super::super::Solution for Solution
 						return false;
 					}
 				};
-				if end.eq(&next)
+				if end.eq(next)
 				{
 					return true;
 				}

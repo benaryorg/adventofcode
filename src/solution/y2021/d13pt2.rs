@@ -142,7 +142,7 @@ impl super::super::Solution for Solution
 			})
 			.collect::<String>();
 
-		Ok(format!("{}", output))
+		Ok(output)
 	}
 }
 
