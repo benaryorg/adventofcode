@@ -65,7 +65,7 @@ impl Solution
 	}
 }
 
-type Map<K,V> = std::collections::BTreeMap<K, V>;
+type Map<K,V> = std::collections::HashMap<K, V>;
 
 fn line(input: &str) -> IResult<&str, ((char, char), char)>
 {
