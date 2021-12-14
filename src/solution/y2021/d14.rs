@@ -122,7 +122,7 @@ impl super::super::Solution for Solution
 		{
 			let combos = ('A'..='Z')
 				.flat_map(move |left| ('A'..='Z')
-					.flat_map(move |right| (0..=(self.steps))
+					.flat_map(move |right| (0..=self.steps)
 						.map(move |step| -> (char, char, usize) { (left, right, step) })
 					)
 				)
@@ -159,7 +159,7 @@ impl super::super::Solution for Solution
 					}
 					let [(la, lb), (ra, rb)] = expansions.unwrap();
 					let mut map = counts.get(&(la, lb, steps - 1)).unwrap().clone();
-					for (&ch, &count) in counts.get(&(ra, rb, steps - 1)).unwrap().into_iter()
+					for (&ch, &count) in counts.get(&(ra, rb, steps - 1)).unwrap()
 					{
 						*map.entry(ch).or_insert(0) += count;
 					}
@@ -183,11 +183,10 @@ impl super::super::Solution for Solution
 				debug!("({}, {}): {:?}", a, b, map);
 				map
 			})
-			.filter(Option::is_some)
-			.map(Option::unwrap)
+			.flatten()
 			.fold(Map::<char, usize>::new(), |mut map, counts|
 			{
-				for (&ch, &count) in counts.into_iter()
+				for (&ch, &count) in counts.iter()
 				{
 					trace!("adding {} to {}", count, ch);
 					*map.entry(ch).or_insert(0) += count;
