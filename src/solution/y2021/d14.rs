@@ -65,6 +65,8 @@ impl Solution
 	}
 }
 
+type Map<K,V> = std::collections::BTreeMap<K, V>;
+
 fn line(input: &str) -> IResult<&str, ((char, char), char)>
 {
 	terminated(
@@ -81,46 +83,28 @@ fn line(input: &str) -> IResult<&str, ((char, char), char)>
 	)(input)
 }
 
-fn full_input(input: &str) -> IResult<&str, (&str, std::collections::HashMap<(char, char), char>)>
+fn full_input(input: &str) -> IResult<&str, (Vec<char>, Map<(char, char), char>)>
 {
-	let (input, chars) = terminated(alpha1, newline)(input)?;
+	let (input, chars) = terminated(many1(one_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ")), newline)(input)?;
 	let (input, _) = char('\n')(input)?;
 	let (input, lines) = many1(line)(input)?;
 	let (input, _) = eof(input)?;
 	Ok((input, (chars, lines.into_iter().collect())))
 }
 
-fn unfold(lookup: &std::collections::HashMap<(char, char), char>, a: char, b: char, depth_limit: usize, counter: &mut std::collections::HashMap<(char, char, usize, char), u128>)
+trait Expand<T>
 {
-	for ch in 'A'..='Z'
+	fn expand(&self, lookup: &Map<(T, T), T>) -> Option<[(T, T); 2]>;
+}
+
+impl Expand<char> for (char, char)
+{
+	fn expand(&self, lookup: &Map<(char, char), char>) -> Option<[(char, char); 2]>
 	{
-		if depth_limit == 0
-		{
-			let count = ((a == ch) as u128) + ((b == ch) as u128);
-			trace!("got nothing: {},{}: {} for {}", a, b, count, ch); 
-			counter.insert((a, b, depth_limit, ch), count);
-			continue;
-		}
-		if !counter.contains_key(&(a, b, depth_limit, ch))
-		{
-			if let Some(&mid) = lookup.get(&(a, b))
-			{
-				unfold(lookup, a, mid, depth_limit-1, counter);
-				unfold(lookup, mid, b, depth_limit-1, counter);
-				let count_a = counter.get(&(a, mid, depth_limit-1, ch)).copied().unwrap_or(0);
-				let count_b = counter.get(&(mid, b, depth_limit-1, ch)).copied().unwrap_or(0);
-				let count = (count_a + count_b)
-					.saturating_sub(if mid == ch { 1 } else { 0 });
-				trace!("{:?}: {}", (a, b, depth_limit, ch), count);
-				counter.insert((a, b, depth_limit, ch), count);
-			}
-			else
-			{
-				let count = ((a == ch) as u128) + ((b == ch) as u128);
-				trace!("got nothing: {},{}: {} for {}", a, b, count, ch); 
-				counter.insert((a, b, depth_limit, ch), count);
-			}
-		}
+		let (a, b) = *self;
+		lookup.get(self)
+			.copied()
+			.map(|mid| [(a, mid), (mid, b)])
 	}
 }
 
@@ -132,27 +116,91 @@ impl super::super::Solution for Solution
 		let (_, (input, lookup)) = terminated(full_input, eof)(&self.input)
 			.map_err(|err| anyhow!("{}", err))?;
 
-		let mut counts: std::collections::HashMap::<(char, char, usize, char), u128> = Default::default();
+		let mut counts = Map::<(char, char, usize), Map<char, usize>>::new();
 
-		let counts = input.chars().collect::<Vec<char>>().windows(2)
-			.flat_map(|v|
+		loop
+		{
+			let combos = ('A'..='Z')
+				.flat_map(move |left| ('A'..='Z')
+					.flat_map(move |right| (0..=(self.steps))
+						.map(move |step| -> (char, char, usize) { (left, right, step) })
+					)
+				)
+				.filter(|tuple| !counts.contains_key(tuple))
+				.collect::<Vec<_>>();
+
+			if combos.is_empty()
 			{
-				let a = v[0];
-				let b = v[1];
-				debug!("running pair: ({}, {})", a, b);
+				break;
+			}
 
-				unfold(&lookup, a, b, self.steps, &mut counts);
-				('A'..='Z').map(|ch| (ch, counts.get(&(a, b, self.steps, ch)).copied().unwrap_or(0))).collect::<Vec<_>>()
+			let new_stuff = combos.into_iter()
+				.filter(|&(a, b, steps)|
+				{
+					if steps == 0
+					{
+						return true;
+					}
+					if let Some(expansions) = (a, b).expand(&lookup)
+					{
+						expansions.iter().all(|&(a, b)| counts.contains_key(&(a, b, steps-1)))
+					}
+					else
+					{
+						true
+					}
+				})
+				.map(|(a, b, steps)|
+				{
+					let expansions = (a, b).expand(&lookup);
+					if steps == 0 || expansions.is_none()
+					{
+						return ((a, b, steps), vec![(a, 1)].into_iter().collect());
+					}
+					let [(la, lb), (ra, rb)] = expansions.unwrap();
+					let mut map = counts.get(&(la, lb, steps - 1)).unwrap().clone();
+					for (&ch, &count) in counts.get(&(ra, rb, steps - 1)).unwrap().into_iter()
+					{
+						*map.entry(ch).or_insert(0) += count;
+					}
+					((a, b, steps), map)
+				})
+				.collect::<Vec<_>>();
+
+			if new_stuff.is_empty()
+			{
+				break;
+			}
+
+			counts.extend(new_stuff);
+		}
+
+		let mut character_count = input.windows(2)
+			.map(|v| (v[0], v[1]))
+			.map(|(a, b)|
+			{
+				let map = counts.get(&(a, b, self.steps));
+				debug!("({}, {}): {:?}", a, b, map);
+				map
 			})
-			.fold(std::collections::HashMap::<char, u128>::new(), |mut map, (ch, count)|
+			.filter(Option::is_some)
+			.map(Option::unwrap)
+			.fold(Map::<char, usize>::new(), |mut map, counts|
 			{
-				*map.entry(ch).or_insert(0) += count;
+				for (&ch, &count) in counts.into_iter()
+				{
+					trace!("adding {} to {}", count, ch);
+					*map.entry(ch).or_insert(0) += count;
+				}
 				map
 			});
 
-		debug!("{:?}", counts);
+		
+		*character_count.get_mut(input.last().unwrap()).unwrap() += 1;
 
-		let nums = counts
+		debug!("{:?}", character_count);
+
+		let nums = character_count
 			.into_iter()
 			.filter(|&(_, num)| num != 0)
 			.map(|(_, num)| num)
@@ -165,7 +213,7 @@ impl super::super::Solution for Solution
 			.min()
 			.ok_or(Error::AocNoSolution)?;
 
-		Ok(format!("{}", max-min))
+		Ok(format!("{}", max - min))
 	}
 }
 
