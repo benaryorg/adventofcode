@@ -127,12 +127,6 @@ impl super::super::Solution for Solution
 				.copied()
 				.map(|(dx, dy)| (x + dx, y + dy))
 				.filter(|&(nx, ny)| nx >= 0 && ny >= 0 && nx < max_x && ny < max_y)
-				.filter(|(nx, ny)|
-				{
-					let opt = distance.get((nx+ny*max_x) as usize).unwrap();
-					opt.is_none() || !opt.unwrap().0
-				})
-				.collect::<Vec<_>>()
 			{
 				trace!("checking neighbour ({}, {})", nx, ny);
 				let risk = risks.get((nx+ny*max_x) as usize)
@@ -142,7 +136,15 @@ impl super::super::Solution for Solution
 				let entry = distance.get_mut((nx+ny*max_x) as usize)
 					.ok_or(Error::AocNoSolution)
 					.with_context(|| anyhow!("cannot find neighbour ({}, {}) in distance map", x, y))?;
-				if entry.is_none() || entry.unwrap().1 > current_distance + risk
+				if let Some((visited, value)) = entry
+				{
+					if *visited
+					{
+						continue;
+					}
+					*value = (current_distance + risk).min(*value);
+				}
+				else
 				{
 					*entry = Some((entry.map(|(visited, _)| visited).unwrap_or(false), current_distance + risk));
 				}
