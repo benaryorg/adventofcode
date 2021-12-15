@@ -10,17 +10,6 @@ use nom::
 	IResult,
 };
 
-// FIXME: this is broken.
-// The unit tests pass, but everything else is broken.
-// To quote someone looking over my numbers:
-//
-// > basically almost all (except one, one is correct) of the numbers are off by at least one (but also single digit)
-// > yes, all (except the one that is correct) are too high
-//
-// And my personal favourite:
-// 
-// > off-by-more-than-one-but-single-digit how did you do that
-
 /// # Examples
 ///
 /// ```
