@@ -9,12 +9,19 @@ use nom::
 	IResult,
 };
 
+#[derive(Debug,Eq,PartialEq)]
+enum Part
+{
+	Part1,
+	Part2,
+}
+
 /// # Examples
 ///
 /// ```
-/// # use adventofcode::solution::{ y2021::d18pt1::Solution, Solution as S };
+/// # use adventofcode::solution::{ y2021::d18::Solution, Solution as S };
 /// # env_logger::init();
-/// assert_eq!(Solution::new("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]\n".to_string()).solve().unwrap(), "3488");
+/// assert_eq!(Solution::part1("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]\n".to_string()).solve().unwrap(), "3488");
 /// let input = "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]\n\
 ///     [[[5,[2,8]],4],[5,[[9,9],0]]]\n\
 ///     [6,[[[6,2],[5,6]],[[7,6],[4,7]]]]\n\
@@ -25,21 +32,37 @@ use nom::
 ///     [[9,3],[[9,9],[6,[4,9]]]]\n\
 ///     [[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]\n\
 ///     [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]\n";
-/// assert_eq!(Solution::new(input.to_string()).solve().unwrap(), "4140");
+/// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "4140");
+/// assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "3993");
 /// ```
 pub struct Solution
 {
 	input: String,
+	part: Part,
 }
 
 impl Solution
 {
-	pub fn new(input: String) -> Self
+	pub fn part1(input: String) -> Self
 	{
-		Self { input, }
+		Self
+		{
+			input,
+			part: Part::Part1,
+		}
+	}
+
+	pub fn part2(input: String) -> Self
+	{
+		Self
+		{
+			input,
+			part: Part::Part2,
+		}
 	}
 }
 
+#[derive(Clone)]
 enum Value
 {
 	Number(usize),
@@ -163,14 +186,12 @@ impl super::super::Solution for Solution
 		let mut overflow_left = 0;
 		let mut overflow_right = 0;
 
-		let value = many1(terminated(value, newline))(&self.input)
+		let values = many1(terminated(value, newline))(&self.input)
 			.map_err(|err| anyhow!("{}", err))?
 			.1
 			.into_iter()
-			.reduce(|a, b|
+			.map(|mut value|
 			{
-				let mut value = Value::Pair(Box::new((a, b)));
-
 				loop
 				{
 					trace!("current: {:?}", value);
@@ -186,9 +207,65 @@ impl super::super::Solution for Solution
 
 				value
 			})
-			.ok_or(Error::AocNoSolution)?;
+			.collect::<Vec<_>>();
 
-		Ok(format!("{}", value.magnitude()))
+		if self.part == Part::Part1
+		{
+			let value = values
+				.into_iter()
+				.reduce(|a, b|
+				{
+					let mut value = Value::Pair(Box::new((a, b)));
+
+					loop
+					{
+						trace!("current: {:?}", value);
+						value.explode(0, &mut overflow_left, &mut overflow_right);
+						let (new, cancel) = value.split();
+						value = new;
+						if cancel
+						{
+							continue;
+						}
+						break;
+					}
+
+					value
+				})
+				.ok_or(Error::AocNoSolution)?;
+
+			Ok(format!("{}", value.magnitude()))
+		}
+		else
+		{
+			let max_magnitude = values.iter()
+				.cloned()
+				.flat_map(|v1| values.iter().cloned().map(move |v2| (v1.clone(), v2)))
+				.map(|(a, b)|
+				{
+					let mut value = Value::Pair(Box::new((a, b)));
+
+					loop
+					{
+						trace!("current: {:?}", value);
+						value.explode(0, &mut overflow_left, &mut overflow_right);
+						let (new, cancel) = value.split();
+						value = new;
+						if cancel
+						{
+							continue;
+						}
+						break;
+					}
+
+					value
+				})
+				.map(|v| v.magnitude())
+				.max()
+				.ok_or(Error::AocNoSolution)?;
+
+			Ok(format!("{}", max_magnitude))
+		}
 	}
 }
 
