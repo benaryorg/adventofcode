@@ -165,7 +165,7 @@ impl Value
 
 fn value(input: &str) -> IResult<&str, Value>
 {
-	if input.chars().next() == Some('[')
+	if input.starts_with('[')
 	{
 		let (input, tuple) = delimited(char('['), separated_pair(value, char(','), value), char(']'))(input)?;
 		Ok((input, Value::Pair(Box::new(tuple))))

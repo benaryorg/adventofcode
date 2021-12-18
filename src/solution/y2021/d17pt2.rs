@@ -53,7 +53,7 @@ impl super::super::Solution for Solution
 
 		// this has a good chance of working, don't rely on it tho
 
-		let (_, ((x_low, x_high), (y_low, y_high))) = terminated(input, eof)(&self.input.trim())
+		let (_, ((x_low, x_high), (y_low, y_high))) = terminated(input, eof)(self.input.trim())
 			.map_err(|err| anyhow!("{}", err))
 			.context("input not parsable")?;
 

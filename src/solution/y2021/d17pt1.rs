@@ -51,9 +51,9 @@ impl super::super::Solution for Solution
 	{
 		debug!("called with input: {}", self.input);
 
-		// this has a good chance of working, don't rely on it tho
+		// NOTE: this has a good chance of working, don't rely on it tho
 
-		let (_, ((x_low, x_high), (y_low, y_high))) = terminated(input, eof)(&self.input.trim())
+		let (_, ((x_low, x_high), (y_low, y_high))) = terminated(input, eof)(self.input.trim())
 			.map_err(|err| anyhow!("{}", err))
 			.context("input not parsable")?;
 
@@ -81,14 +81,7 @@ impl super::super::Solution for Solution
 				}
 				else
 				{
-					if y_low.max(y_high) <= 0
-					{
-						0
-					}
-					else
-					{
-						0
-					}
+					0
 				}
 			})
 			.max()
