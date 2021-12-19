@@ -24,19 +24,9 @@ enum Part
 
 /// # Examples
 ///
-/// ```no_run
+/// ```
 /// # use adventofcode::solution::{ y2021::d19::Solution, Solution as S };
 /// # env_logger::init();
-/// let input = "--- scanner 0 ---\n\
-///     0,0,2\n\
-///     0,4,1\n\
-///     0,3,3\n\
-///     \n\
-///     --- scanner 1 ---\n\
-///     0,-1,-1\n\
-///     0,-5,0\n\
-///     0,-2,1\n";
-/// //assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "79");
 /// let input = "--- scanner 0 ---\n\
 ///     404,-588,-901\n\
 ///     528,-643,409\n\
@@ -203,7 +193,6 @@ impl Solution
 }
 
 type Set<V> = std::collections::BTreeSet<V>;
-type Map<K, V> = std::collections::BTreeMap<K, V>;
 
 fn scanner(input: &str) -> IResult<&str, (usize, Vec<(isize, isize, isize)>)>
 {
@@ -216,63 +205,33 @@ fn scanner(input: &str) -> IResult<&str, (usize, Vec<(isize, isize, isize)>)>
 	Ok((input, (id, vec)))
 }
 
-fn untransform(num: usize, x: isize, y: isize, z: isize) -> (isize, isize, isize)
-{
-	[
-		(|x: isize, y: isize, z: isize| { (x, y, z) })(x, y, z),
-		(|x: isize, z: isize, y: isize| { (x, y, -z) })(x, y, z),
-		(|x: isize, y: isize, z: isize| { (x, -y, -z) })(x, y, z),
-		(|x: isize, z: isize, y: isize| { (x, -y, z) })(x, y, z),
-		(|y: isize, x: isize, z: isize| { (x, -y, z) })(x, y, z),
-		(|y: isize, x: isize, z: isize| { (x, y, -z) })(x, y, z),
-		(|z: isize, x: isize, y: isize| { (x, y, z) })(x, y, z),
-		(|z: isize, x: isize, y: isize| { (x, -y, -z) })(x, y, z),
-		(|x: isize, y: isize, z: isize| { (-x, -y, z) })(x, y, z),
-		(|x: isize, y: isize, z: isize| { (-x, y, z) })(x, y, z),
-		(|x: isize, y: isize, z: isize| { (-x, y, -z) })(x, y, z),
-		(|x: isize, y: isize, z: isize| { (-x, -y, -z) })(x, y, z),
-		(|y: isize, x: isize, z: isize| { (-x, y, z) })(x, y, z),
-		(|y: isize, x: isize, z: isize| { (x, -y, -z) })(x, y, z),
-		(|z: isize, x: isize, y: isize| { (-x, y, -z) })(x, y, z),
-		(|z: isize, x: isize, y: isize| { (-x, -y, z) })(x, y, z),
-		(|z: isize, y: isize, x: isize| { (x, y, -z) })(x, y, z),
-		(|z: isize, y: isize, x: isize| { (x, -y, z) })(x, y, z),
-		(|y: isize, z: isize, x: isize| { (x, y, z) })(x, y, z),
-		(|y: isize, z: isize, x: isize| { (x, -y, -z) })(x, y, z),
-		(|z: isize, y: isize, x: isize| { (-x, y, z) })(x, y, z),
-		(|z: isize, y: isize, x: isize| { (-x, -y, -z) })(x, y, z),
-		(|y: isize, z: isize, x: isize| { (-x, -y, z) })(x, y, z),
-		(|y: isize, z: isize, x: isize| { (-x, y, -z) })(x, y, z),
-	][num]
-}
-
 fn transform(num: usize, x: isize, y: isize, z: isize) -> (isize, isize, isize)
 {
 	[
-		(x, y, z),
-		(x, -z, y),
-		(x, -y, -z),
-		(x, z, -y),
-		(-y, x, z),
-		(y, x, -z),
-		(z, x, y),
-		(-z, x, -y),
-		(-x, -y, z),
-		(-x, y, z),
-		(-x, y, -z),
-		(-x, -y, -z),
-		(y, -x, z),
+		( x,  y,  z),
+		( x, -z,  y),
+		( x, -y, -z),
+		( x,  z, -y),
+		(-y,  x,  z),
+		( y,  x, -z),
+		( z,  x,  y),
+		(-z,  x, -y),
+		(-x, -y,  z),
+		(-x,  z,  y),
+		(-x,  y, -z),
+		(-x, -z, -y),
+		( y, -x,  z),
 		(-y, -x, -z),
-		(-z, -x, y),
-		(z, -x, -y),
-		(-z, y, x),
-		(z, -y, x),
-		(y, z, x),
-		(-y, -z, x),
-		(z, y, -x),
+		(-z, -x,  y),
+		( z, -x, -y),
+		(-z,  y,  x),
+		( z, -y,  x),
+		( y,  z,  x),
+		(-y, -z,  x),
+		( z,  y, -x),
 		(-z, -y, -x),
-		(-y, z, -x),
-		(y, -z, -x),
+		(-y,  z, -x),
+		( y, -z, -x),
 	][num]
 }
 
@@ -307,99 +266,77 @@ impl super::super::Solution for Solution
 			})
 			.collect::<Vec<Vec<(_, Set<(isize, isize, isize)>)>>>();
 
-		let mut map: Map<(usize, usize), Map<usize, usize>> = Default::default();
-
-		per_scanner_permutations.iter()
-			.enumerate()
-			.for_each(|(outer_id, scanner)|
+		let beacons = (0..=(scanners.len()-1))
+			.map(|n|
 			{
-				scanner.iter()
-					.enumerate()
-					.for_each(|(permutation_id, (_params, permutation))|
-					{
-						per_scanner_permutations.iter()
-							.enumerate()
-							.for_each(|(inner_id, inner_scanner)|
-							{
-								if inner_id == outer_id
-								{
-									return;
-								}
-								inner_scanner.iter()
-									.enumerate()
-									.filter(|(_, (_params, p))| p.intersection(permutation).count() >= 12)
-									.inspect(|(inner_permutation_id, (_params, p))|
-										trace!("({}, {}) (len {}) and ({}, {}) (len {}) have {} intersections",
-											outer_id,
-											permutation_id,
-											permutation.len(),
-											inner_id,
-											inner_permutation_id,
-											p.len(),
-											p.intersection(permutation).count()
-										)
-									)
-									.for_each(|(inner_permutation_id, _)|
-									{
-										let mut combined = Map::<usize, usize>::new();
-										let left = map.get(&(inner_id, inner_permutation_id)).cloned().unwrap_or_default();
-										combined.extend(left);
-										let right = map.get(&(outer_id, permutation_id)).cloned().unwrap_or_default();
-										combined.extend(right);
-										combined.insert(outer_id, permutation_id);
-										combined.insert(inner_id, inner_permutation_id);
-										map.insert((outer_id, permutation_id), combined.clone());
-										map.insert((inner_id, inner_permutation_id), combined.clone());
-									})
-							})
-					})
-			});
+				let mut found = std::iter::once(n).collect::<Set<_>>();
+				let mut beacons = per_scanner_permutations[n].iter().cloned().map(|(_params, set)| set).collect::<Vec<_>>();
 
-		//trace!("{:#?}", per_scanner_permutations);
-		trace!("{:?}", map);
+				while found.len() < scanners.len()
+				{
+					trace!("current beacons: {:?}", beacons);
+					debug!("found scanners: {:?}", found);
+					if let Some((scanner, (new, mut permutation))) = per_scanner_permutations.iter()
+						.enumerate()
+						.filter(|(i, _)| !found.contains(i))
+						.find_map(|(scanner_id, scanner)|
+						{
+							scanner.iter()
+								.enumerate()
+								.find_map(|(permutation_id, (params, permutation))|
+								{
+									beacons.iter()
+										.max_by_key(|perm| permutation.intersection(&perm).count())
+										.and_then(|beacon_permutation|
+										{
+											let intersections = permutation.intersection(&beacon_permutation).count();
+											if intersections != 1
+											{
+												trace!("scanner {} permutation {} has {} intersections", scanner_id, permutation_id, intersections);
+											}
+											if intersections < 12
+											{
+												None
+											}
+											else
+											{
+												debug!("permutation {} params: {:?}", permutation_id, params);
+												Some((permutation, beacon_permutation.clone()))
+											}
+										})
+								})
+								.map(|permutation| (scanner_id, permutation))
+						})
+					{
+						permutation.extend(new);
+						found.insert(scanner);
+						beacons = permutation
+							.iter()
+							.map(|&(x, y, z)|
+							{
+								permutation.iter()
+									.map(|&(x_, y_, z_)|
+									{
+										(x_ - x, y_ - y, z_ - z)
+									})
+									.collect::<Set<_>>()
+							})
+							.collect();
+					}
+					else
+					{
+						bail!(Error::AocNoSolution);
+					}
+				}
+
+				Ok(beacons)
+			})
+			.find_map(Result::ok)
+			.ok_or(Error::AocNoSolution)?;
 
 		if self.part == Part::Part1
 		{
-			let mapping: (&(usize, usize), &Map<usize, usize>) = map.iter()
-				.max_by_key(|(_k, v)| v.len())
-				.ok_or(Error::AocNoSolution)?;
-
-			let ((base_x, base_y, base_z), base_trans) = per_scanner_permutations[mapping.0.0][mapping.0.1].0;
-
-			debug!("{:?}", mapping);
-
-			let mut beacons = mapping.1.iter().map(|(a, b)| (*a, *b)).chain(std::iter::once(*mapping.0))
-				.flat_map(|(scanner, permutation)| per_scanner_permutations[scanner][permutation].1.iter())
-				.copied()
-				.collect::<Set<_>>();
-
-			for n in (0..=scanners.len()).filter(|n| !mapping.1.contains_key(n) && *n != mapping.0.0)
-			{
-				let ((rel_scan, rel_perm), (target_scan, target_perm)) = map.iter()
-					.find_map(|((rel_scan, rel_perm), map)|
-					{
-						if *rel_scan == mapping.0.0
-						{
-							return map.get(&n)
-								.map(|b| ((rel_scan, rel_perm), (n, b)));
-						}
-						None
-					})
-					.ok_or(Error::AocNoSolution)?;
-				let target_params = per_scanner_permutations[target_scan][*target_perm].0;
-				beacons.extend(per_scanner_permutations[*rel_scan][*rel_perm].1
-					.iter()
-					.copied()
-					.map(|(x, y, z)| untransform(target_params.1, x, y, z))
-					.map(|(x, y, z)| transform(base_trans, x + target_params.0.0 - base_x, y + target_params.0.1 - base_y, z + target_params.0.2 - base_z)));
-			}
-
-			/*let beacons = solution.1.into_iter().chain(std::iter::once(solution.0))
-				.map(|(scanner, permutation)| per_scanner_permutations[scanner][permutation].clone())
-				.inspect(|set| trace!("found set with length {}", set.len()))
-				.collect::<Set<_>>();*/
-
-			Ok(format!("{}", 0))
+			Ok(format!("{}", beacons.len()))
 		}
 		else
 		{
