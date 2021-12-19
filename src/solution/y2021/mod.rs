@@ -28,6 +28,7 @@ pub mod d16;
 pub mod d17pt1;
 pub mod d17pt2;
 pub mod d18;
+pub mod d19;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
