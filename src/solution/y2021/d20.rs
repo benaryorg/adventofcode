@@ -100,50 +100,53 @@ impl super::super::Solution for Solution
 		let invert = *mask.get(0).ok_or(Error::AocNoSolution).context("cannot retrieve invert bit")?;
 		let mut odd = true;
 
+		let mut min_x = input.iter().min_by_key(|(x, _y)| x).ok_or(Error::AocNoSolution).context("cannot retrieve any values")?.0;
+		let mut max_x = input.iter().max_by_key(|(x, _y)| x).ok_or(Error::AocNoSolution).context("cannot retrieve any values")?.0;
+		let mut min_y = input.iter().min_by_key(|(_x, y)| y).ok_or(Error::AocNoSolution).context("cannot retrieve any values")?.1;
+		let mut max_y = input.iter().max_by_key(|(_x, y)| y).ok_or(Error::AocNoSolution).context("cannot retrieve any values")?.1;
+
 		let mut iter = std::iter::successors(Some(input), |input|
 		{
-			let min_x = input.iter().min_by_key(|(x, _y)| x)?.0 - 1;
-			let max_x = input.iter().max_by_key(|(x, _y)| x)?.0 + 1;
-			let min_y = input.iter().min_by_key(|(_x, y)| y)?.1 - 1;
-			let max_y = input.iter().max_by_key(|(_x, y)| y)?.1 + 1;
-
+			min_x -= 1;
+			min_y -= 1;
+			max_x += 1;
+			max_y += 1;
 			odd = !odd;
 
 			Some((min_x..=max_x)
 				.flat_map(|x| (min_y..=max_y).map(move |y| (x, y)))
 				.filter(|&(x, y)|
 				{
-					[
-						(x-1, y-1),
-						(x  , y-1),
-						(x+1, y-1),
-						(x-1, y  ),
-						(x  , y  ),
-						(x+1, y  ),
-						(x-1, y+1),
-						(x  , y+1),
+					let idx = [
 						(x+1, y+1),
+						(x  , y+1),
+						(x-1, y+1),
+						(x+1, y  ),
+						(x  , y  ),
+						(x-1, y  ),
+						(x+1, y-1),
+						(x  , y-1),
+						(x-1, y-1),
 					]
 						.iter()
-						.map(|&(x, y)|
+						.copied()
+						.enumerate()
+						.filter(|&(_, (x, y))|
 						{
 							if x <= min_x || x >= max_x || y <= min_y || y >= max_y
 							{
-								(invert & odd) as usize
+								invert & odd
 							}
 							else
 							{
-								input.contains(&(x, y)) as usize
+								input.contains(&(x, y))
 							}
 						})
-						.reduce(|acc, new|
+						.fold(0, |acc, (idx, _)|
 						{
-							(acc << 1) | new
-						})
-						.map(|idx| mask.get(idx))
-						.flatten()
-						.map(|b| *b)
-						.unwrap_or(false)
+							(1 << idx) | acc
+						});
+					mask[idx]
 				})
 				.collect())
 		});
