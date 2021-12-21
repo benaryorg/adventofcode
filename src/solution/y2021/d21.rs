@@ -28,6 +28,7 @@ enum Part
 /// # env_logger::init();
 /// let input = "Player 1 starting position: 4\nPlayer 2 starting position: 8";
 /// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "739785");
+/// assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "444356092776315");
 /// ```
 pub struct Solution
 {
@@ -121,7 +122,39 @@ impl super::super::Solution for Solution
 		}
 		else
 		{
-			unimplemented!()
+			assert_eq!(players.len(), 2);
+			let mut player_wins = vec![0_u128; players.len()];
+			let mut games = std::collections::HashMap::<(bool, (usize, usize), (usize, usize)), u128>::new();
+			games.insert((true, players[0], players[1]), 1);
+
+			while let Some((game, count)) = games.remove_entry(&games.keys().min_by_key(|(_, (s1, _), (s2, _))| s1 + s2).copied().unwrap_or_default())
+			{
+				let player1 = game.0;
+				let (score, pos) = if player1 { game.1 } else { game.2 };
+				for roll in (1..=3)
+					.flat_map(move |first| (1..=3).flat_map(move |second| (1..=3).map(move |third| (first + second + third))))
+				{
+					let pos = (pos + roll - 1) % 10 + 1;
+					let score = score + pos;
+					if score >= 21
+					{
+						player_wins[(!player1) as usize] += count;
+						trace!("{} wins for player {}", count, (!player1) as usize);
+						continue;
+					}
+					let key = if player1
+					{
+						(false, (score, pos), game.2)
+					}
+					else
+					{
+						(true, game.1, (score, pos))
+					};
+					*games.entry(key).or_insert(0) += count;
+				}
+			}
+
+			Ok(format!("{}", player_wins.into_iter().max().unwrap()))
 		}
 	}
 }
