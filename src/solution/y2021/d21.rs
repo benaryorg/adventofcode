@@ -19,8 +19,6 @@ enum Part
 	Part2,
 }
 
-// TODO: day 19 is missing so far
-
 /// # Examples
 ///
 /// ```
