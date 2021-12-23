@@ -1,6 +1,6 @@
 use crate::error::*;
 
-use std::ops::RangeInclusive;
+use std::ops::Range;
 
 use nom::
 {
@@ -115,8 +115,7 @@ enum Part
 ///     on x=-53470..21291,y=-120233..-33476,z=-44150..38147\n\
 ///     off x=-93533..-4276,y=-16170..68771,z=-104985..-24507\n";
 /// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "474140");
-/// // part 2 is broken for now
-/// //assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "2758514936282235");
+/// assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "2758514936282235");
 /// ```
 pub struct Solution
 {
@@ -145,7 +144,7 @@ impl Solution
 	}
 }
 
-fn instruction(input: &str) -> IResult<&str, (bool, (RangeInclusive<i128>, RangeInclusive<i128>, RangeInclusive<i128>))>
+fn instruction(input: &str) -> IResult<&str, (bool, (Range<i128>, Range<i128>, Range<i128>))>
 {
 	let (input, state) = alt((tag("on"), tag("off")))(input)?;
 	let state = state == "on";
@@ -160,7 +159,7 @@ fn instruction(input: &str) -> IResult<&str, (bool, (RangeInclusive<i128>, Range
 
 	let (input, (z_min, z_max)) = preceded(tag("z="), separated_pair(map(double, |d| d as i128), many1(char('.')), map(double, |d| d as i128)))(input)?;
 
-	Ok((input, (state, (x_min..=x_max, y_min..=y_max, z_min..=z_max))))
+	Ok((input, (state, (x_min..(x_max + 1), y_min..(y_max + 1), z_min..(z_max + 1)))))
 }
 
 impl super::super::Solution for Solution
@@ -169,7 +168,7 @@ impl super::super::Solution for Solution
 	{
 		debug!("called with input: {}", self.input);
 
-		let (_, instructions) = all_consuming(many1(terminated(instruction, newline)))
+		let (_, mut instructions) = all_consuming(many1(terminated(instruction, newline)))
 			.parse(&self.input)
 			.map_err(|err| anyhow!("{}", err))?;
 
@@ -177,88 +176,104 @@ impl super::super::Solution for Solution
 		if self.part == Part::Part1
 		{
 
-			let count = instructions.into_iter()
+			instructions = instructions.into_iter()
 				.filter_map(|(b, (x, y, z))|
 				{
-					if *x.start() < -50 || *x.end() > 50 || *y.start() < -50 || *y.end() > 50 || *z.start() < -50 || *z.end() > 50
+					if x.start < -50 || x.end > 50 || y.start < -50 || y.end > 50 || z.start < -50 || z.end > 50
 					{
 						None
 					}
 					else
 					{
-						Some((b, (*x.start().max(&-50)..=*x.end().min(&50), *y.start().max(&-50)..=*y.end().min(&50), *z.start().max(&-50)..=*z.end().min(&50))))
+						Some((b, (x.start.max(-50)..x.end.min(50), y.start.max(-50)..y.end.min(50), z.start.max(-50)..z.end.min(50))))
 					}
 				})
-				.fold(std::collections::HashSet::new(), |mut set, (b, (x, y, z))|
-				{
-					for x in x.clone()
-					{
-						for y in y.clone()
-						{
-							for z in z.clone()
-							{
-								if b
-								{
-									set.insert((x, y , z));
-								}
-								else
-								{
-									set.remove(&(x, y, z));
-								}
-							}
-						}
-					}
-					set
-				})
-				.len();
-
-			Ok(format!("{}", count))
+				.collect();
 		}
-		else
+
+		debug!("instructions: {:#?}", instructions);
+
+		let mut x_blocks = instructions.iter()
+			.flat_map(|(_, (r, _, _))| [r.start, r.end])
+			.collect::<Vec<_>>();
+		x_blocks.sort_unstable();
+		x_blocks.dedup();
+
+		let mut y_blocks = instructions.iter()
+			.flat_map(|(_, (_, r, _))| [r.start, r.end])
+			.collect::<Vec<_>>();
+		y_blocks.sort_unstable();
+		y_blocks.dedup();
+
+		let mut z_blocks = instructions.iter()
+			.flat_map(|(_, (_, _, r))| [r.start, r.end])
+			.collect::<Vec<_>>();
+		z_blocks.sort_unstable();
+		z_blocks.dedup();
+
+		let mut states = vec![vec![vec![false; z_blocks.len()]; y_blocks.len()]; x_blocks.len()];
+
+		for (state, (x, y, z)) in instructions
 		{
-			debug!("instructions: {:#?}", instructions);
+			let x_indices = x_blocks.iter()
+				.enumerate()
+				.skip_while(|&(_, b)| b < &x.start)
+				.take_while(|&(_, b)| b < &x.end)
+				.map(|(n, _)| n)
+				.collect::<Vec<_>>();
 
-		let blocks = instructions.iter()
-			.map(|(s, (x, y, z))| if !s { 0 } else { ((x.end() + 1 - x.start()) * (y.end() + 1 - y.start()) * (z.end() + 1 - z.start())) as i128 })
-			.sum::<i128>();
+			let y_indices = y_blocks.iter()
+				.enumerate()
+				.skip_while(|&(_, b)| b < &y.start)
+				.take_while(|&(_, b)| b < &y.end)
+				.map(|(n, _)| n)
+				.collect::<Vec<_>>();
 
-		let subs = instructions.iter()
-			.enumerate()
-			.flat_map(|i1| instructions.iter().enumerate().map(move |i2| (i1.clone(), i2.clone())))
-			.map(|((ln, (ls, (lx, ly, lz))), (rn, (rs, (rx, ry, rz))))|
+			let z_indices = z_blocks.iter()
+				.enumerate()
+				.skip_while(|&(_, b)| b < &z.start)
+				.take_while(|&(_, b)| b < &z.end)
+				.map(|(n, _)| n)
+				.collect::<Vec<_>>();
+
+			for x in &x_indices
 			{
-				if ln >= rn
+				for y in &y_indices
 				{
-					return 0;
-				}
-				if lx.contains(rx.start()) || lx.contains(rx.end()) || rx.contains(lx.start()) || rx.contains(lx.end())
-				{
-					if ly.contains(ry.start()) || ly.contains(ry.end()) || ry.contains(ly.start()) || ry.contains(ly.end())
+					for z in &z_indices
 					{
-						if lz.contains(rz.start()) || lz.contains(rz.end()) || rz.contains(lz.start()) || rz.contains(lz.end())
-						{
-							let x = lx.start().max(rx.start())..=lx.end().min(rx.end());
-							let y = ly.start().max(ry.start())..=ly.end().min(ry.end());
-							let z = lz.start().max(rz.start())..=lz.end().min(rz.end());
-							let size = (**x.end() + 1 - **x.start()) * (**y.end() + 1 - **y.start()) * (**z.end() + 1 - **z.start());
-							let change = match (ls, rs)
-							{
-								(true, true) => 0,
-								(false, true) => size,
-								(true, false) => -2 * size,
-								(false, false) => 0,
-							};
-							trace!("size change: {} by {} ({} vs. {}) with {}:{}", change, size, ln, rn, ls, rs);
-							return change;
-						}
+						states[*x][*y][*z] = state;
 					}
 				}
-				0
-			})
-			.sum::<i128>();
-
-			Ok(format!("{}", blocks + subs))
+			}
 		}
+
+		let mut count = 0;
+
+		states.iter()
+			.enumerate()
+			.for_each(|(xn, states)|
+			{
+				states.iter()
+					.enumerate()
+					.for_each(|(yn, states)|
+					{
+						states.iter()
+							.enumerate()
+							.for_each(|(zn, state)|
+							{
+								if *state
+								{
+									let x = x_blocks[xn + 1] - x_blocks[xn];
+									let y = y_blocks[yn + 1] - y_blocks[yn];
+									let z = z_blocks[zn + 1] - z_blocks[zn];
+									count += x * y * z;
+								}
+							})
+					})
+			});
+
+		Ok(format!("{}", count))
 	}
 }
 
