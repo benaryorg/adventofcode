@@ -28,9 +28,9 @@ enum Part
 /// # use adventofcode::solution::{ y2021::d22::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "on x=10..12,y=10..12,z=10..12\n\
-/// 	on x=11..13,y=11..13,z=11..13\n\
-/// 	off x=9..11,y=9..11,z=9..11\n\
-/// 	on x=10..10,y=10..10,z=10..10\n";
+///     on x=11..13,y=11..13,z=11..13\n\
+///     off x=9..11,y=9..11,z=9..11\n\
+///     on x=10..10,y=10..10,z=10..10\n";
 /// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "39");
 /// let input = "on x=-20..26,y=-36..17,z=-47..7\n\
 ///     on x=-20..33,y=-21..23,z=-26..28\n\

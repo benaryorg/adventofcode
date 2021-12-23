@@ -123,7 +123,6 @@ impl State
 				let cost = left.unwrap().cost() * mul;
 				std::mem::swap(left, right);
 				vec.push((clone, cost));
-				return;
 			}
 		};
 
@@ -172,7 +171,7 @@ impl State
 
 fn amphipod(input: &str) -> IResult<&str, Amphipod>
 {
-	map(one_of("ABCD"), |ch| Amphipod::from(ch))(input)
+	map(one_of("ABCD"), Amphipod::from)(input)
 }
 
 fn state(input: &str) -> IResult<&str, State>
@@ -223,7 +222,7 @@ impl super::super::Solution for Solution
 		loop
 		{
 			let unfinished = known.keys()
-				.filter(|state| !terminal.contains(&state))
+				.filter(|state| !terminal.contains(state))
 				.cloned()
 				.collect::<Vec<_>>();
 
