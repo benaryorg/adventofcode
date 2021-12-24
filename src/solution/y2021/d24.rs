@@ -170,6 +170,49 @@ fn run(mut regs: [isize; 4], instructions: &[Instruction], num: usize) -> Option
 	}
 }
 
+struct ModelNumbers
+{
+	nums: [usize; 14],
+}
+
+impl ModelNumbers
+{
+	fn new() -> Self
+	{
+		Self
+		{
+			nums: [9; 14],
+		}
+	}
+}
+
+impl Iterator for ModelNumbers
+{
+	type Item = (usize, [usize; 14]);
+
+	fn next(&mut self) -> Option<Self::Item>
+	{
+		if self.nums.iter_mut().rev().fold(true, |overflow, num|
+			{
+				if overflow
+				{
+					*num -= 1;
+					if *num <= 0
+					{
+						*num = 9;
+						return true;
+					}
+				}
+				false
+			})
+		{
+			return None;
+		}
+		Some((self.nums.iter().copied().reduce(|a, b| a*10 + b).unwrap(), self.nums.clone()))
+	}
+}
+
+
 impl super::super::Solution for Solution
 {
 	fn solve(&self) -> Result<String>
@@ -196,7 +239,179 @@ impl super::super::Solution for Solution
 
 		if self.part == Part::Part1
 		{
-			Ok(format!("{}", run([0; 4], &instructions[..], 0).ok_or(Error::AocNoSolution)?))
+			use rayon::prelude::*;
+			let first = ModelNumbers::new()
+				.par_bridge()
+				.find_map_first(|(num, digits)|
+				{
+					if digits[6..].iter().all(|&i| i == 9)
+					{
+						trace!("{}", num);
+					}
+					let mut iter = digits.iter();
+
+					let mut w: isize = 0;
+					let mut x: isize = 0;
+					let mut y: isize = 0;
+					let mut z: isize = 0;
+
+					if *iter.next().unwrap() as isize != 11
+					{
+						z = w + 8;
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 + 12
+					{
+						z *= 26 + (w + 8);
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 + 10
+					{
+						z *= 26;
+						z += w + 12;
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 - 8
+					{
+						z += w + 10 - x;
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 + 15
+					{
+						z *= 26;
+						z += w + 2;
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 + 15
+					{
+						z *= 26;
+						z += w + 8;
+					}
+					if *iter.next().unwrap() as isize == z % 26 - 11
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 4
+					}
+					w = *iter.next().unwrap() as isize;
+					if w != z % 26 + 10
+					{
+						z *= 26;
+						z += w + 9;
+					}
+					w = *iter.next().unwrap() as isize;
+					if w == z % 26 - 3
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 10;
+					}
+					w = *iter.next().unwrap() as isize;
+					x = z % 26;
+					x += 15;
+					x = (x == w) as isize;
+					x = (x == 0) as isize;
+					y *= 0;
+					y += 25;
+					y *= x;
+					y += 1;
+					z *= y;
+					y *= 0;
+					y += w;
+					y += 3;
+					y *= x;
+					z += y;
+					w = *iter.next().unwrap() as isize;
+					x *= 0;
+					x += z;
+					x %= 26;
+					z /= 26;
+					x += -3;
+					x = (x == w) as isize;
+					x = (x == 0) as isize;
+					y *= 0;
+					y += 25;
+					y *= x;
+					y += 1;
+					z *= y;
+					y *= 0;
+					y += w;
+					y += 7;
+					y *= x;
+					z += y;
+					w = *iter.next().unwrap() as isize;
+					x *= 0;
+					x += z;
+					x %= 26;
+					z /= 26;
+					x += -1;
+					x = (x == w) as isize;
+					x = (x == 0) as isize;
+					y *= 0;
+					y += 25;
+					y *= x;
+					y += 1;
+					z *= y;
+					y *= 0;
+					y += w;
+					y += 7;
+					y *= x;
+					z += y;
+					w = *iter.next().unwrap() as isize;
+					x *= 0;
+					x += z;
+					x %= 26;
+					z /= 26;
+					x += -10;
+					x = (x == w) as isize;
+					x = (x == 0) as isize;
+					y *= 0;
+					y += 25;
+					y *= x;
+					y += 1;
+					z *= y;
+					y *= 0;
+					y += w;
+					y += 2;
+					y *= x;
+					z += y;
+					w = *iter.next().unwrap() as isize;
+					x *= 0;
+					x += z;
+					x %= 26;
+					z /= 26;
+					x += -16;
+					x = (x == w) as isize;
+					x = (x == 0) as isize;
+					y *= 0;
+					y += 25;
+					y *= x;
+					y += 1;
+					z *= y;
+					y *= 0;
+					y += w;
+					y += 2;
+					y *= x;
+					z += y;
+
+						if z == 0
+						{
+							Some(num)
+						}
+						else
+						{
+							None
+						}
+					})
+					.ok_or(Error::AocNoSolution)?;
+
+			Ok(format!("{}", first))
 		}
 		else
 		{
