@@ -84,6 +84,22 @@ enum Instruction
 	Eql(usize, Data),
 }
 
+impl Instruction
+{
+	fn reg(&self) -> Vec<usize>
+	{
+		match self
+		{
+			&Instruction::Add(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			&Instruction::Mul(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			&Instruction::Div(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			&Instruction::Mod(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			&Instruction::Eql(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			&Instruction::Inp(reg) => vec![reg],
+		}
+	}
+}
+
 fn register(input: &str) -> IResult<&str, usize>
 {
 	let (input, ch) = one_of("wxyz")(input)?;
@@ -108,65 +124,49 @@ fn instruction(input: &str) -> IResult<&str, Instruction>
 	))(input)
 }
 
-fn run(instructions: &[Instruction], input: &[usize]) -> bool
+fn run(mut regs: [isize; 4], instructions: &[Instruction], num: usize) -> Option<usize>
 {
-	let mut input = input.iter();
-	let mut regs = [0; 4];
-	for i in instructions
+	if num < 999999
 	{
-		match i
+		trace!("{}", num);
+	}
+
+	if let Some((instruction, rest)) = instructions.split_first()
+	{
+		match instruction
 		{
-			&Instruction::Inp(reg) => regs[reg] = *input.next().unwrap() as isize,
 			&Instruction::Add(reg, data) => regs[reg] += data.resolve(&regs),
 			&Instruction::Mul(reg, data) => regs[reg] *= data.resolve(&regs),
 			&Instruction::Div(reg, data) => regs[reg] /= data.resolve(&regs),
 			&Instruction::Mod(reg, data) => regs[reg] %= data.resolve(&regs),
 			&Instruction::Eql(reg, data) => regs[reg] = (regs[reg] == data.resolve(&regs)) as isize,
-		}
-	}
-
-	regs[3] == 0
-}
-
-struct ModelNumbers
-{
-	nums: [usize; 14],
-}
-
-impl ModelNumbers
-{
-	fn new() -> Self
-	{
-		Self
-		{
-			nums: [9; 14],
-		}
-	}
-}
-
-impl Iterator for ModelNumbers
-{
-	type Item = (usize, [usize; 14]);
-
-	fn next(&mut self) -> Option<Self::Item>
-	{
-		if self.nums.iter_mut().rev().fold(true, |overflow, num|
+			&Instruction::Inp(reg) =>
 			{
-				if overflow
-				{
-					*num -= 1;
-					if *num <= 0
+				use rayon::prelude::*;
+				return (1..=9).rev()
+					.par_bridge()
+					.find_map_first(|i|
 					{
-						*num = 9;
-						return true;
-					}
-				}
-				false
-			})
-		{
-			return None;
+						let mut regs = regs.clone();
+						regs[reg] = i as isize;
+						run(regs, rest, num * 10 + i)
+					});
+			},
 		}
-		Some((self.nums.iter().copied().reduce(|a, b| a*10 + b).unwrap(), self.nums.clone()))
+
+		run(regs, rest, num)
+	}
+	else
+	{
+		if regs[3] == 0
+		{
+			debug!("found: {}", num);
+			Some(num)
+		}
+		else
+		{
+			None
+		}
 	}
 }
 
@@ -176,37 +176,27 @@ impl super::super::Solution for Solution
 	{
 		debug!("called with input: {}", self.input);
 
-		let (_, instructions) = all_consuming(many1(terminated(instruction, newline)))
+		let (_, mut instructions) = all_consuming(many1(terminated(instruction, newline)))
 			.parse(&self.input)
 			.map_err(|err| anyhow!("{}", err))?;
 
+		let inp = instructions.iter().filter(|i| match i { Instruction::Inp(_) => true, _ => false, }).count();
+		let mut off = 0;
+		for _ in 0..inp
+		{
+			let mut pos = instructions.iter().skip(off).position(|i| match i { Instruction::Inp(_) => true, _ => false, }).unwrap();
+			let reg = instructions[off + pos].reg()[0];
+			while instructions[off + pos + 1].reg().iter().all(|&r| r != reg)
+			{
+				instructions.swap(off + pos, off + pos + 1);
+				pos += 1;
+			}
+			off += pos;
+		}
+
 		if self.part == Part::Part1
 		{
-			use rayon::prelude::*;
-			let big_model = ModelNumbers::new()
-				.par_bridge()
-				.inspect(|(num, v)|
-				{
-					if v[6..].iter().all(|&i| i == 9)
-					{
-						trace!("{}", num);
-					}
-				})
-				.find_map_first(|(num, v)|
-				{
-					if run(&instructions, &v[..])
-					{
-						debug!("found: {}", num);
-						Some(num)
-					}
-					else
-					{
-						None
-					}
-				})
-				.ok_or(Error::AocNoSolution)?;
-
-			Ok(format!("{}", big_model))
+			Ok(format!("{}", run([0; 4], &instructions[..], 0).ok_or(Error::AocNoSolution)?))
 		}
 		else
 		{
