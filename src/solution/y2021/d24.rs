@@ -251,11 +251,10 @@ impl super::super::Solution for Solution
 					let mut iter = digits.iter();
 
 					let mut w: isize = 0;
-					let mut x: isize = 0;
-					let mut y: isize = 0;
 					let mut z: isize = 0;
 
-					if *iter.next().unwrap() as isize != 11
+					w = *iter.next().unwrap() as isize;
+					if w != 11
 					{
 						z = w + 8;
 					}
@@ -273,7 +272,7 @@ impl super::super::Solution for Solution
 					w = *iter.next().unwrap() as isize;
 					if w != z % 26 - 8
 					{
-						z += w + 10 - x;
+						z += w + 10;
 					}
 					w = *iter.next().unwrap() as isize;
 					if w != z % 26 + 15
@@ -287,7 +286,8 @@ impl super::super::Solution for Solution
 						z *= 26;
 						z += w + 8;
 					}
-					if *iter.next().unwrap() as isize == z % 26 - 11
+					w = *iter.next().unwrap() as isize;
+					if w == z % 26 - 11
 					{
 						z /= 26;
 					}
@@ -313,103 +313,62 @@ impl super::super::Solution for Solution
 						z += w + 10;
 					}
 					w = *iter.next().unwrap() as isize;
-					x = z % 26;
-					x += 15;
-					x = (x == w) as isize;
-					x = (x == 0) as isize;
-					y *= 0;
-					y += 25;
-					y *= x;
-					y += 1;
-					z *= y;
-					y *= 0;
-					y += w;
-					y += 3;
-					y *= x;
-					z += y;
+					if w != z % 26 + 15
+					{
+						z *= 26;
+						z += w + 3;
+					}
 					w = *iter.next().unwrap() as isize;
-					x *= 0;
-					x += z;
-					x %= 26;
-					z /= 26;
-					x += -3;
-					x = (x == w) as isize;
-					x = (x == 0) as isize;
-					y *= 0;
-					y += 25;
-					y *= x;
-					y += 1;
-					z *= y;
-					y *= 0;
-					y += w;
-					y += 7;
-					y *= x;
-					z += y;
+					if w == z % 26 - 3
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 7;
+					}
 					w = *iter.next().unwrap() as isize;
-					x *= 0;
-					x += z;
-					x %= 26;
-					z /= 26;
-					x += -1;
-					x = (x == w) as isize;
-					x = (x == 0) as isize;
-					y *= 0;
-					y += 25;
-					y *= x;
-					y += 1;
-					z *= y;
-					y *= 0;
-					y += w;
-					y += 7;
-					y *= x;
-					z += y;
+					if w == z % 26 - 1
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 7;
+					}
 					w = *iter.next().unwrap() as isize;
-					x *= 0;
-					x += z;
-					x %= 26;
-					z /= 26;
-					x += -10;
-					x = (x == w) as isize;
-					x = (x == 0) as isize;
-					y *= 0;
-					y += 25;
-					y *= x;
-					y += 1;
-					z *= y;
-					y *= 0;
-					y += w;
-					y += 2;
-					y *= x;
-					z += y;
+					if w == z % 26 - 10
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 2;
+					}
 					w = *iter.next().unwrap() as isize;
-					x *= 0;
-					x += z;
-					x %= 26;
-					z /= 26;
-					x += -16;
-					x = (x == w) as isize;
-					x = (x == 0) as isize;
-					y *= 0;
-					y += 25;
-					y *= x;
-					y += 1;
-					z *= y;
-					y *= 0;
-					y += w;
-					y += 2;
-					y *= x;
-					z += y;
+					if w == z % 26 - 16
+					{
+						z /= 26;
+					}
+					else
+					{
+						z -= z % 26;
+						z += w + 1;
+					}
 
-						if z == 0
-						{
-							Some(num)
-						}
-						else
-						{
-							None
-						}
-					})
-					.ok_or(Error::AocNoSolution)?;
+					if z == 0
+					{
+						Some(num)
+					}
+					else
+					{
+						None
+					}
+				})
+				.ok_or(Error::AocNoSolution)?;
 
 			Ok(format!("{}", first))
 		}
