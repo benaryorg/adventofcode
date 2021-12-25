@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use crate::error::*;
 
 use nom::
@@ -250,10 +252,9 @@ impl super::super::Solution for Solution
 					}
 					let mut iter = digits.iter();
 
-					let mut w: isize = 0;
+					let mut w: isize = *iter.next().unwrap() as isize;
 					let mut z: isize = 0;
 
-					w = *iter.next().unwrap() as isize;
 					if w != 11
 					{
 						z = w + 8;
