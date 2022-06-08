@@ -28,16 +28,16 @@ fn main() -> Result<()>
 		})
 		.collect();
 
-	let matches = clap::App::new("adventofcode")
+	let matches = clap::Command::new("adventofcode")
 		.version("0.0.0")
 		.author("benaryorg <binary@benary.org>")
 		.about("Crunches Numbers for https://adventofcode.com")
-		.setting(clap::AppSettings::SubcommandRequiredElseHelp)
+		.subcommand_required(true)
+		.arg_required_else_help(true)
 		.subcommands(subcommands.values().map(|command| command.usage()))
 		.get_matches();
 
-	let (command, command_matches) = matches.subcommand();
-	let command_matches = command_matches.expect("cannot fail due to SubCommandRequiredElseHelp");
+	let (command, command_matches) = matches.subcommand().expect("cannot fail due to SubCommandRequiredElseHelp");
 
 	let command = subcommands.get(command).unwrap();
 	let input = command.input_url()

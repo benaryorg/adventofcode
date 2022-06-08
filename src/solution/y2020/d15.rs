@@ -87,34 +87,34 @@ impl<'a> super::super::InputParser<'a> for Parser
 	{
 		None
 	}
-	fn parse(&self, _input: Option<String>, matches: &clap::ArgMatches<'a>) -> Box<dyn super::super::Solution>
+	fn parse(&self, _input: Option<String>, matches: &clap::ArgMatches) -> Box<dyn super::super::Solution>
 	{
 		Box::new(Solution::new(
 			matches.value_of("input").unwrap().to_string(),
 			matches.value_of("iterations").unwrap().parse().unwrap()
 		))
 	}
-	fn usage<'b>(&self) -> clap::App<'b,'b>
+	fn usage<'b>(&self) -> clap::Command<'b>
 	{
-		clap::SubCommand::with_name(&self.name())
+		clap::Command::new(&self.name())
 			.arg
-				( clap::Arg::with_name("input")
+				( clap::Arg::new("input")
 				.value_name("INPUT")
 				.help("input string as per website")
 				.takes_value(true)
-				.multiple(false)
+				.multiple_occurrences(false)
 				.default_value("9,19,1,6,0,5,4")
 				)
 			.arg
-				( clap::Arg::with_name("iterations")
+				( clap::Arg::new("iterations")
 				.value_name("ITERATIONS")
-				.short("i")
+				.short('i')
 				.long("iterations")
 				.alias("count")
 				.help("amount of iterations")
 				.allow_hyphen_values(true)
 				.takes_value(true)
-				.multiple(false)
+				.multiple_occurrences(false)
 				.default_value(self.iterations)
 				)
 	}

@@ -13,8 +13,8 @@ y2021 = []
 
 [dependencies]
 anyhow = "^1.0"
-bitvec = "^0.22.3"
-clap = "^2.34"
+bitvec = "^1.0"
+clap = { version = "^3.0", features = [ "env" ] }
 env_logger = "^0.9.0"
 lazy_static = "^1.4"
 log = "^0.4.14"

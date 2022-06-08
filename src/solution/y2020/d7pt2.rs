@@ -50,8 +50,8 @@ impl super::super::Solution for Solution
 					.map(|bag|
 					{
 						let content = bag.strip_suffix(" bag").or_else(|| bag.strip_suffix(" bags")).ok_or(Error::AocParsing)?;
-						let count: usize = content.split(' ').next().ok_or(Error::AocParsing)?.parse()?;
-						let colour = content.splitn(2,' ').nth(1).ok_or(Error::AocParsing)?;
+						let (count, colour) = content.split_once(' ').ok_or(Error::AocParsing)?;
+						let count: usize = count.parse()?;
 						Ok((count,colour))
 					})
 					.collect::<Result<Vec<_>>>()?;

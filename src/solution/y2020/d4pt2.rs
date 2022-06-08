@@ -50,6 +50,7 @@ impl Solution
 	}
 }
 
+#[allow(dead_code)]
 #[derive(Clone,Debug)]
 struct Passport
 {

@@ -166,13 +166,12 @@ impl super::super::Solution for Solution
 
 		let mut character_count = input.windows(2)
 			.map(|v| (v[0], v[1]))
-			.map(|(a, b)|
+			.filter_map(|(a, b)|
 			{
 				let map = counts.get(&(a, b, self.steps));
 				debug!("({}, {}): {:?}", a, b, map);
 				map
 			})
-			.flatten()
 			.fold(Map::<char, usize>::new(), |mut map, counts|
 			{
 				for (&ch, &count) in counts.iter()

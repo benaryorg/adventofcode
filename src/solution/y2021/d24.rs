@@ -64,13 +64,13 @@ impl Data
 {
 	fn resolve(&self, regs: &[isize]) -> isize
 	{
-		match self
+		match *self
 		{
-			&Data::Register(r) =>
+			Data::Register(r) =>
 			{
 				regs[r]
 			},
-			&Data::Value(v) => v,
+			Data::Value(v) => v,
 		}
 	}
 }
@@ -90,14 +90,14 @@ impl Instruction
 {
 	fn reg(&self) -> Vec<usize>
 	{
-		match self
+		match *self
 		{
-			&Instruction::Add(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
-			&Instruction::Mul(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
-			&Instruction::Div(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
-			&Instruction::Mod(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
-			&Instruction::Eql(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
-			&Instruction::Inp(reg) => vec![reg],
+			Instruction::Add(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			Instruction::Mul(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			Instruction::Div(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			Instruction::Mod(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			Instruction::Eql(reg, data) => match data { Data::Register(reg2) => vec![reg, reg2], _ => vec![reg], },
+			Instruction::Inp(reg) => vec![reg],
 		}
 	}
 }
@@ -135,21 +135,21 @@ fn run(mut regs: [isize; 4], instructions: &[Instruction], num: usize) -> Option
 
 	if let Some((instruction, rest)) = instructions.split_first()
 	{
-		match instruction
+		match *instruction
 		{
-			&Instruction::Add(reg, data) => regs[reg] += data.resolve(&regs),
-			&Instruction::Mul(reg, data) => regs[reg] *= data.resolve(&regs),
-			&Instruction::Div(reg, data) => regs[reg] /= data.resolve(&regs),
-			&Instruction::Mod(reg, data) => regs[reg] %= data.resolve(&regs),
-			&Instruction::Eql(reg, data) => regs[reg] = (regs[reg] == data.resolve(&regs)) as isize,
-			&Instruction::Inp(reg) =>
+			Instruction::Add(reg, data) => regs[reg] += data.resolve(&regs),
+			Instruction::Mul(reg, data) => regs[reg] *= data.resolve(&regs),
+			Instruction::Div(reg, data) => regs[reg] /= data.resolve(&regs),
+			Instruction::Mod(reg, data) => regs[reg] %= data.resolve(&regs),
+			Instruction::Eql(reg, data) => regs[reg] = (regs[reg] == data.resolve(&regs)) as isize,
+			Instruction::Inp(reg) =>
 			{
 				use rayon::prelude::*;
 				return (1..=9).rev()
 					.par_bridge()
 					.find_map_first(|i|
 					{
-						let mut regs = regs.clone();
+						let mut regs = regs;
 						regs[reg] = i as isize;
 						run(regs, rest, num * 10 + i)
 					});
@@ -199,7 +199,7 @@ impl Iterator for ModelNumbers
 				if overflow
 				{
 					*num -= 1;
-					if *num <= 0
+					if *num == 0
 					{
 						*num = 9;
 						return true;
@@ -210,7 +210,7 @@ impl Iterator for ModelNumbers
 		{
 			return None;
 		}
-		Some((self.nums.iter().copied().reduce(|a, b| a*10 + b).unwrap(), self.nums.clone()))
+		Some((self.nums.iter().copied().reduce(|a, b| a*10 + b).unwrap(), self.nums))
 	}
 }
 

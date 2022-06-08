@@ -578,9 +578,9 @@ impl super::super::Solution for Solution
 							vec!
 							[
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[0].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
-									.chain(s1.iter().copied().zip(monster[1].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
-									.chain(s2.iter().copied().zip(monster[2].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
+									.chain(s0.iter().copied().zip(monster[0].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
+									.chain(s1.iter().copied().zip(monster[1].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
+									.chain(s2.iter().copied().zip(monster[2].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 								std::iter::empty()
 									.chain(s0.iter().copied().zip(monster[0].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
@@ -593,9 +593,9 @@ impl super::super::Solution for Solution
 									.chain(s2.iter().copied().zip(monster[0].iter().rev().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 								std::iter::empty()
-									.chain(s0.iter().copied().zip(monster[2].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
-									.chain(s1.iter().copied().zip(monster[1].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
-									.chain(s2.iter().copied().zip(monster[0].iter().copied().collect::<Vec<_>>()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
+									.chain(s0.iter().copied().zip(monster[2].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y),b)))
+									.chain(s1.iter().copied().zip(monster[1].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y+1),b)))
+									.chain(s2.iter().copied().zip(monster[0].to_vec()).enumerate().map(move |(x,b)| ((x+xoff,y+2),b)))
 									.collect::<Vec<_>>(),
 							]
 						}
