@@ -90,19 +90,17 @@ impl<'a> super::super::InputParser<'a> for Parser
 	fn parse(&self, _input: Option<String>, matches: &clap::ArgMatches) -> Box<dyn super::super::Solution>
 	{
 		Box::new(Solution::new(
-			matches.value_of("input").unwrap().to_string(),
-			matches.value_of("iterations").unwrap().parse().unwrap()
+			matches.get_one::<String>("input").unwrap().to_string(),
+			*matches.get_one("iterations").unwrap(),
 		))
 	}
-	fn usage<'b>(&self) -> clap::Command<'b>
+	fn usage<'b>(&self) -> clap::Command
 	{
-		clap::Command::new(&self.name())
+		clap::Command::new(self.name())
 			.arg
 				( clap::Arg::new("input")
 				.value_name("INPUT")
 				.help("input string as per website")
-				.takes_value(true)
-				.multiple_occurrences(false)
 				.default_value("9,19,1,6,0,5,4")
 				)
 			.arg
@@ -113,8 +111,6 @@ impl<'a> super::super::InputParser<'a> for Parser
 				.alias("count")
 				.help("amount of iterations")
 				.allow_hyphen_values(true)
-				.takes_value(true)
-				.multiple_occurrences(false)
 				.default_value(self.iterations)
 				)
 	}

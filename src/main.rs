@@ -44,7 +44,7 @@ fn main() -> Result<()>
 		.map(|url| -> Result<String>
 		{
 			let timer = std::time::Instant::now();
-			let cookie = command_matches.value_of("cookie").expect("cookie required but not passed");
+			let cookie = command_matches.get_one::<String>("cookie").expect("cookie required but not passed");
 			let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE, format!("session={}", cookie).parse().unwrap())].iter().cloned().collect();
 			let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
 			let response = http.get(url).send()?;
