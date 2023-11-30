@@ -18,6 +18,8 @@ fn main() -> Result<()>
 		solution::y2020::parsers(),
 		#[cfg(feature = "y2021")]
 		solution::y2021::parsers(),
+		#[cfg(feature = "y2023")]
+		solution::y2023::parsers(),
 	];
 
 	let subcommands: std::collections::HashMap<_,_> = years.iter()
