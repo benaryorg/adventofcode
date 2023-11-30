@@ -149,7 +149,12 @@ fn operator(type_: usize, input: (&[u8], usize)) -> IResult<(&[u8], usize), Cont
 		let mut v = vec![partial];
 		v.extend(full_bytes);
 		trace!("parsing operator: split off {} bits: {:?}", bit_length, (&v, 8 - (bit_length % 8)));
-		let (_, packets) = terminated(many0(packet), eof)((&v, 8 - (bit_length % 8))).map_err(|err| unimplemented!("{}", err))?;
+		let (slice, remaining_bits) = match 8 - (bit_length % 8)
+		{
+			8 => (&v[1..], 0),
+			remaining_bits => (&v[..], remaining_bits),
+		};
+		let (_, packets) = terminated(many0(packet), eof)((slice, remaining_bits)).map_err(|err| unimplemented!("{}", err))?;
 		(input, packets)
 	};
 
