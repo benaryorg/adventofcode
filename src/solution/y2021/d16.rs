@@ -220,7 +220,7 @@ impl super::super::Solution for Solution
 					b'A'..=b'F' => b - b'A' + 10,
 					_ => Err(Error::AocParsing).context("non-hex-digit encountered")?,
 				};
-				Ok((a << 4 | b) as u8)
+				Ok(a << 4 | b)
 			})
 			.collect::<Result<Vec<_>>>()?;
 

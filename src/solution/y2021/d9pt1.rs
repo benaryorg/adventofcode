@@ -49,7 +49,7 @@ impl super::super::Solution for Solution
 
 		// code for diagonals:
 		//let surround = (-1..1).map(|y| (-1..1).map(|x| (x, y))).collect::<Vec<_>>();
-		let surround = vec!
+		let surround =
 		[
 			(-1, 0), // left
 			(0, 1), // top

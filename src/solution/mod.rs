@@ -23,7 +23,7 @@ pub trait InputParser<'a>
 	{
 		Some(reqwest::Url::parse(&format!("https://adventofcode.com/{}/day/{}/input", self.year(), self.day())).expect("compile time url invalid"))
 	}
-	fn usage<'b>(&self) -> clap::Command
+	fn usage(&self) -> clap::Command
 	{
 		let subcommand = clap::Command::new(self.name());
 		if self.input_url().is_some()

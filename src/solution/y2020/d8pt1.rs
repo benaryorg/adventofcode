@@ -75,7 +75,7 @@ impl super::super::Solution for Solution
 			{
 				return Ok(format!("{}", acc));
 			}
-			match code[pi as usize]
+			match code[pi]
 			{
 				Instruction::Acc(i) =>
 				{

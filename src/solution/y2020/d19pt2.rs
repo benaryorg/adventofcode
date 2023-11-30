@@ -109,7 +109,7 @@ impl Rule
 			{
 				Rule { id: 0, condition: Condition::Rules(first.clone()), }.validate(rules, input.as_ref())
 					.into_iter()
-					.chain(Rule { id: 0, condition: Condition::Rules(second.clone()), }.validate(rules, input.as_ref()).into_iter())
+					.chain(Rule { id: 0, condition: Condition::Rules(second.clone()), }.validate(rules, input.as_ref()))
 					.collect()
 			},
 			Condition::Rules(ref vec) =>
@@ -201,7 +201,7 @@ impl super::super::Solution for Solution
 			.inspect(|rule| debug!("parsed rule: {:?}", rule))
 			.collect::<Result<Vec<_>>>()?
 			.into_iter()
-			.chain(modified.into_iter())
+			.chain(modified)
 			.map(|rule| (rule.id, rule))
 			.collect::<std::collections::BTreeMap<usize,Rule>>();
 

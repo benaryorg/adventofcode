@@ -49,7 +49,7 @@ impl super::super::Solution for Solution
 
 		map.retain(|_, &mut height| height < 9);
 
-		let surround = vec!
+		let surround =
 		[
 			(-1, 0), // left
 			(0, 1), // top

@@ -37,7 +37,6 @@ impl super::super::Solution for Solution
 		let max = *positions.iter().max().ok_or(Error::AocNoSolution).context("no maximum")?;
 
 		let fuel_usage = (0..(max - min + 1))
-			.into_iter()
 			.scan(0, |state, x|
 			{
 				*state += x;

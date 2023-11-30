@@ -82,7 +82,7 @@ impl super::super::Solution for Solution
 				let ch = parts.next().ok_or(Error::AocParsing)?;
 				let ch = ch.chars().next().ok_or(Error::AocParsing)?;
 				let password = parts.next().ok_or(Error::AocParsing)?;
-				if parts.next() != None { bail!(Error::AocParsing); }
+				if parts.next().is_some() { bail!(Error::AocParsing); }
 				Ok((PasswordPolicy::from((range,ch)),password.to_string()))
 			})
 			.collect::<Result<Vec<(PasswordPolicy<_>,String)>>>()?;

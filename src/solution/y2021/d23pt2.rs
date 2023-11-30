@@ -291,8 +291,7 @@ impl super::super::Solution for Solution
 			}
 		}
 
-		let cheap = successful.into_iter()
-			.map(|(_, cost)| cost)
+		let cheap = successful.into_values()
 			.min()
 			.ok_or(Error::AocNoSolution)?;
 

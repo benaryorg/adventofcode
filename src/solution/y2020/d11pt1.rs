@@ -50,7 +50,7 @@ impl State
 
 			for j in 0..self.vec[i].len()
 			{
-				if let Some(current) = *self.vec.get(i as usize).and_then(|v| v.get(j as usize)).unwrap()
+				if let Some(current) = *self.vec.get(i).and_then(|v| v.get(j)).unwrap()
 				{
 					let count = (-1..=1)
 						.flat_map(|x: isize|

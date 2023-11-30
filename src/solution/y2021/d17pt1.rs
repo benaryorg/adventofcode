@@ -61,7 +61,7 @@ impl super::super::Solution for Solution
 		{
 			let (y_low, y_high) = (y_low.min(y_high), y_low.max(y_high));
 			let y_far = if y_low.abs() >= y_high.abs() { y_low } else { y_high };
-			y_far.abs() as usize + y_far.is_negative() as usize
+			y_far.unsigned_abs() + y_far.is_negative() as usize
 		};
 
 		let vel = (1..=x_high)

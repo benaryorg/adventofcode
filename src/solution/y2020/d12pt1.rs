@@ -65,7 +65,7 @@ impl Ship
 
 	fn distance(&self) -> usize
 	{
-		self.x.abs() as usize + self.y.abs() as usize
+		self.x.unsigned_abs() + self.y.unsigned_abs()
 	}
 }
 

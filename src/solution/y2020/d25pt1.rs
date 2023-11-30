@@ -62,7 +62,7 @@ impl super::super::Solution for Solution
 		const SUBJECT: usize = 7;
 		let card_pub = lines.next().ok_or(Error::AocParsing)?.parse()?;
 		let door_pub = lines.next().ok_or(Error::AocParsing)?.parse()?;
-		if lines.next() != None
+		if lines.next().is_some()
 		{
 			bail!(Error::AocParsing);
 		}

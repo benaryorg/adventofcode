@@ -81,8 +81,8 @@ impl super::super::Solution for Solution
 			.filter(|((x1, y1), (x2, y2))| self.consider_diagonals || x1 == x2 || y1 == y2)
 			.flat_map(|((x1, y1), (x2, y2))|
 			{
-				let values_x = if x1 < x2 { (x1..=x2).into_iter().collect::<Vec<_>>() } else { (x2..=x1).rev().into_iter().collect::<Vec<_>>() };
-				let values_y = if y1 < y2 { (y1..=y2).into_iter().collect::<Vec<_>>() } else { (y2..=y1).rev().into_iter().collect::<Vec<_>>() };
+				let values_x = if x1 < x2 { (x1..=x2).collect::<Vec<_>>() } else { (x2..=x1).rev().collect::<Vec<_>>() };
+				let values_y = if y1 < y2 { (y1..=y2).collect::<Vec<_>>() } else { (y2..=y1).rev().collect::<Vec<_>>() };
 
 				if values_x.len() == 1
 				{
@@ -104,7 +104,7 @@ impl super::super::Solution for Solution
 
 		for y in 0..=9
 		{
-			let line = (0..=9).into_iter()
+			let line = (0..=9)
 				.map(|x| unfolded.get(&(x,y)).map(|i| format!("{}", i).chars().last().unwrap()).unwrap_or('.'))
 				.collect::<String>();
 			info!("{}", line);
