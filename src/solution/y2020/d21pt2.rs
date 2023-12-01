@@ -186,9 +186,9 @@ impl super::super::Solution for Solution
 						})
 						.collect::<Vec<_>>()
 				})
-				.fold(std::collections::HashMap::new(),|mut acc,(allergen,ingredient)|
+				.fold(std::collections::HashMap::<_, std::collections::HashSet<_>>::new(), |mut acc,(allergen,ingredient)|
 				{
-					acc.entry(allergen).or_insert_with(std::collections::HashSet::new).insert(ingredient);
+					acc.entry(allergen).or_default().insert(ingredient);
 					acc
 				});
 			for (allergen,ingredients) in &mut map

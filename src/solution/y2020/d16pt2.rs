@@ -115,7 +115,6 @@ impl super::super::Solution for Solution
 				(0..rules.len())
 					.map(
 					{
-						let kv = kv;
 						move |i| (i,kv)
 					})
 			})
