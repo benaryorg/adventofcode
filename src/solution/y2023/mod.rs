@@ -1,3 +1,5 @@
+pub mod d1pt1;
+
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
 	#[allow(unused)]
@@ -9,6 +11,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 
 	let days: Vec<Option<InputType>> = vec!
 	[
+		Some(InputType::UrlInput(Box::new(|input| Box::new(d1pt1::Solution::new(input.expect("empty input received")))))),
 	];
 
 	days.into_iter()
