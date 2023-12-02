@@ -9,8 +9,6 @@ Thus here's my (probably rather disgusting) code for all this.
 My code fetches the input directly from upstream (although I feel bad for using the AoC resources for that) and thus requires a session cookie.
 That cookie should be passed as an environment variable (`ADVENTOFCODE_SESSION`).
 
-The individual days are to be found in the [releases](https://github.com/benaryorg/adventofcode/releases) aka git tags.
-
 ## Issues
 
 Please open an issue if:
