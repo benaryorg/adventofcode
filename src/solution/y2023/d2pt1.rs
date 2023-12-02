@@ -51,7 +51,7 @@ impl super::super::Solution for Solution
 							})
 							.collect::<Result<std::collections::HashMap<String, usize>>>()
 					})
-					.collect::<Result<Vec<_>>>();
+					.collect::<Result<Vec<_>>>()?;
 				Ok((game, sets))
 			})
 			.collect::<Result<std::collections::BTreeMap<usize, _>>>()?;
@@ -64,7 +64,6 @@ impl super::super::Solution for Solution
 			.filter(|(id, sets)|
 			{
 				let valid = sets.iter()
-					.flat_map(|map| map.iter())
 					.flatten()
 					.all(|(colour, number)| bag.get(colour).copied().unwrap_or_default() >= *number);
 				trace!("game {} is {} ({:?})", id, if valid { "valid" } else { "invalid" }, sets);

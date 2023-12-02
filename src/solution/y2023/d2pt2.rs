@@ -51,7 +51,7 @@ impl super::super::Solution for Solution
 							})
 							.collect::<Result<std::collections::HashMap<String, usize>>>()
 					})
-					.collect::<Result<Vec<_>>>();
+					.collect::<Result<Vec<_>>>()?;
 				Ok((game, sets))
 			})
 			.collect::<Result<std::collections::BTreeMap<usize, _>>>()?;
@@ -60,7 +60,6 @@ impl super::super::Solution for Solution
 			.map(|sets|
 			{
 				sets.iter()
-					.flat_map(|map| map.iter())
 					.flatten()
 					.fold(std::collections::BTreeMap::<String, usize>::new(),|mut acc, (colour, new_num)|
 					{
