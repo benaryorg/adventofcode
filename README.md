@@ -1,7 +1,7 @@
 # Advent of Code
 
 This is my code for the [Advent of Code](https://adventofcode.com).
-I largely use it to get at least some green dots on GitHub these days so I'm neither super on time nor very competitive about it.
+I largely play to not let my coding skills get too rusty (pun intended).
 Thus here's my (probably rather disgusting) code for all this.
 
 # My Code
