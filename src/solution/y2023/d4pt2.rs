@@ -77,9 +77,8 @@ impl super::super::Solution for Solution
 		let result: usize = cards.iter()
 			.fold((0, Default::default()), |(mut count, mut old): (usize, std::collections::VecDeque<usize>), card|
 			{
-				debug!("card {}: score={}", card.id, card.score());
 				let amount = old.pop_front().unwrap_or(1);
-				trace!("card {}: amount={}", card.id, amount);
+				debug!("card {}: score={} amount={}", card.id, card.score(), amount);
 				count += amount;
 				let mut new = std::collections::VecDeque::new();
 				for i in 0..card.score()
