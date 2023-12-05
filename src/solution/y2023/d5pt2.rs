@@ -119,7 +119,7 @@ impl std::str::FromStr for Map
 	fn from_str(input: &str) -> std::result::Result<Self, Error>
 	{
 		trace!("parsing map {}", input);
-		let (name, input) = input.split_once(" ").ok_or(Error::AocParsing)?;
+		let (name, input) = input.split_once(' ').ok_or(Error::AocParsing)?;
 		let map = input.lines()
 			.skip(1)
 			.map(|line|
@@ -160,7 +160,7 @@ impl super::super::Solution for Solution
 			.split_whitespace()
 			.map(|s| -> Result<usize>
 			{
-				Ok(s.parse().context(Error::AocParsing)?)
+				s.parse().context(Error::AocParsing)
 			})
 			.collect::<Result<Vec<usize>>>()?;
 
@@ -169,7 +169,7 @@ impl super::super::Solution for Solution
 		let maps = input.split("\n\n")
 			.map(|s|
 			{
-				Ok(s.parse().context(Error::AocParsing)?)
+				s.parse().context(Error::AocParsing)
 			})
 			.collect::<Result<Vec<Map>>>()?;
 
@@ -182,7 +182,7 @@ impl super::super::Solution for Solution
 
 		let map = maps.iter()
 			.skip(1)
-			.fold(maps.first().unwrap().clone(), |a: Map, b| a.merge(&b));
+			.fold(maps.first().unwrap().clone(), |a: Map, b| a.merge(b));
 
 		debug!("maps compiled");
 
