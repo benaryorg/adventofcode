@@ -184,14 +184,7 @@ impl super::super::Solution for Solution
 			.skip(1)
 			.fold(maps.first().unwrap().clone(), |a: Map, b| a.merge(b));
 
-		debug!("maps compiled");
-
-		for i in 0..100
-		{
-			let stacked = maps.iter().fold(i, |seed, map| map.translate(seed));
-			let merged = map.translate(i);
-			debug!("{} {}: should {} is {}", i, stacked == merged, stacked, merged);
-		}
+		debug!("maps compiled, {} entries", map.map.len());
 
 		let mut map_entries = map.map.iter()
 			.collect::<Vec<_>>();
