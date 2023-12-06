@@ -62,7 +62,7 @@ impl super::super::Solution for Solution
 
 		debug!("first={} last={}", first, last);
 
-		let result: isize = last - first + 1;
+		let result = (first..=last).count();
 
 		Ok(format!("{}", result))
 	}
