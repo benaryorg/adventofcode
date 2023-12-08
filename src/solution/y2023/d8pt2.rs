@@ -74,7 +74,7 @@ impl super::super::Solution for Solution
 					.count()
 			})
 			/*
-			 * Note: this only works because of several criteria none of which I've seen stated in the AoC text (but I'm a terrible reader
+			 * Note: this only works because of several criteria none of which I've seen stated in the AoC text (but I'm a terrible reader):
 			 *   - every single start will only ever reach a single end, their paths will never cross
 			 *   - the distance between every start and its corresponding end is the same as from the end to the end again (i.e. looping with the same offset)
 			 *   - step distances sync up perfectly with the looping, therefore you won't have a miraculous disparity as soon as the LCM exceeds the give step count
