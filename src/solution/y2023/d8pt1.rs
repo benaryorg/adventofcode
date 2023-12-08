@@ -67,9 +67,10 @@ impl super::super::Solution for Solution
 					_ => unreachable!(),
 				};
 				trace!("at {:?}: taking step {:?} to {:?}", current, step, next);
-				(!next.ends_with('Z')).then_some(next)
+				Some(next)
 			})
-			.count();
+			.position(|next| next.ends_with('Z'))
+			.unwrap();
 
 		Ok(format!("{}", result))
 	}

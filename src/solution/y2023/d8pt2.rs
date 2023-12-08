@@ -69,9 +69,10 @@ impl super::super::Solution for Solution
 							_ => unreachable!(),
 						};
 						trace!("at {:?}: taking step {:?} to {:?}", current, step, next);
-						(!next.ends_with('Z')).then_some(next)
+						Some(next)
 					})
-					.count()
+					.position(|next| next.ends_with('Z'))
+					.unwrap()
 			})
 			/*
 			 * Note: this only works because of several criteria none of which I've seen stated in the AoC text (but I'm a terrible reader):
