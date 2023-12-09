@@ -83,7 +83,7 @@ impl super::super::Solution for Solution
 			 * But hey.
 			 * So be it.
 			 */
-			.fold(1, |lcm, offset| num::integer::lcm(lcm, offset));
+			.fold(1, num::integer::lcm);
 
 		Ok(format!("{}", result))
 	}
