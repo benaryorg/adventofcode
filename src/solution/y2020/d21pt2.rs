@@ -141,7 +141,7 @@ impl super::super::Solution for Solution
 		}
 
 		let safe = recipes.iter()
-			.flat_map(|recipe| recipe.ingredients.iter().cloned().filter(|ingredient| allergenes.iter().all(|(i,_)| i != ingredient)).collect::<Vec<_>>())
+			.flat_map(|recipe| recipe.ingredients.iter().filter(|ingredient| allergenes.iter().all(|(i,_)| i != *ingredient)).cloned().collect::<Vec<_>>())
 			.collect::<std::collections::HashSet<_>>();
 
 		let mut unmatched = recipes.iter()
