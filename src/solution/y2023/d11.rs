@@ -40,20 +40,16 @@ impl super::super::Solution for Solution
 	{
 		debug!("called with input: {}", self.input);
 
-		let mut map = self.input.lines()
+		let map = self.input.lines()
 			.map(|line|
 			{
 				line.chars()
-					.map(|ch| (ch == '#').then_some(0))
+					.map(|ch| (ch == '#').then_some(()))
 					.collect::<Vec<_>>()
 			})
 			.collect::<Vec<_>>();
 
-		map.iter_mut()
-			.flat_map(|row| row.iter_mut())
-			.flat_map(|option| option.iter_mut())
-			.enumerate()
-			.for_each(|(idx, galaxy)| *galaxy = idx + 1);
+		trace!("galaxy:\n{:?}", map);
 
 		let empty_cols = &(0..map[0].len())
 			.filter(|x|
@@ -64,13 +60,6 @@ impl super::super::Solution for Solution
 
 		debug!("empty cols: {:?}", empty_cols);
 
-		/*empty_cols.into_iter()
-			.enumerate()
-			.for_each(|(offset, x)|
-			{
-				map.iter_mut().for_each(|row| row.insert(x + offset, None));
-			});*/
-
 		let empty_rows = &map.iter()
 			.enumerate()
 			.filter(|(_, row)| row.iter().all(Option::is_none))
@@ -78,13 +67,6 @@ impl super::super::Solution for Solution
 			.collect::<Vec<_>>();
 
 		debug!("empty rows: {:?}", empty_rows);
-
-		/*empty_rows.into_iter()
-			.enumerate()
-			.map(|(a, b)| a + b)
-			.for_each(|idx| map.insert(idx, map.get(idx).unwrap().clone()));*/
-
-		trace!("galaxy:\n{:?}", map);
 
 		let galaxies = map.into_iter()
 			.enumerate()
