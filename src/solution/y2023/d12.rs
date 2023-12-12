@@ -82,10 +82,24 @@ impl Solution
 	}
 }
 
-fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
-	where I: Iterator<Item=u8>
+#[derive(Debug, Hash, Copy, Clone, PartialEq, Eq)]
+enum Spring
 {
-	let mut iter = iter.peekable();
+	Good,
+	Bad,
+	Unknown,
+}
+
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
+struct Row
+{
+	springs: Vec<Spring>,
+	groups: Vec<usize>,
+}
+
+fn validate(row: &[Spring], groups: &[usize]) -> Option<bool>
+{
+	let mut iter = row.iter().peekable();
 	let mut sum = groups.iter().sum::<usize>();
 	let mut groups = groups.iter().copied().peekable();
 	let mut cur = 0;
@@ -94,7 +108,7 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 	{
 		match ch
 		{
-			b'#' =>
+			Spring::Bad =>
 			{
 				if sum == 0
 				{
@@ -117,7 +131,7 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 					}
 				}
 			},
-			b'.' =>
+			Spring::Good =>
 			{
 				if cur > 0
 				{
@@ -135,11 +149,11 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 					}
 				}
 			},
-			b'?' =>
+			Spring::Unknown =>
 			{
 				if groups.next().is_some()
 				{
-					let remaining = iter.filter(|&b| b == b'#' || b == b'?').count();
+					let remaining = iter.filter(|&&b| b == Spring::Bad || b == Spring::Unknown).count();
 					if remaining + 1 < sum
 					{
 						return Some(false);
@@ -148,7 +162,7 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 				}
 				else
 				{
-					if cur > 0 || iter.any(|b| b == b'#')
+					if cur > 0 || iter.any(|&b| b == Spring::Bad)
 					{
 						return Some(false);
 					}
@@ -158,7 +172,6 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 					}
 				}
 			},
-			_ => unreachable!(),
 		}
 	}
 	if let Some(group) = groups.next()
@@ -182,71 +195,123 @@ fn validate<I>(iter: I, groups: &[usize]) -> Option<bool>
 	Some(true)
 }
 
+impl Row
+{
+	fn permutations<'a>(map: &mut std::collections::HashMap<(Vec<Spring>, &'a [usize]), u128>, row: &[Spring], groups: &'a [usize]) -> u128
+	{
+		map.get(&(row.to_vec(), groups))
+			.copied()
+			.unwrap_or_else(||
+			{
+				let num = match validate(&row, groups)
+				{
+					Some(false) => 0,
+					Some(true) => 1,
+					None =>
+					{
+						let (mut row, groups) =
+						{
+							let (next, restg) = groups.split_first().unwrap();
+							let prefix = row.iter()
+								.copied()
+								.take_while(|&s| s == Spring::Good)
+								.chain(std::iter::repeat(Spring::Bad).take(*next))
+								.chain(std::iter::once(Spring::Good))
+								.collect::<Vec<_>>();
+							if let Some(new_row) = row.strip_prefix(&prefix[..])
+							{
+								(new_row.to_vec(), restg)
+							}
+							else
+							{
+								(row.to_vec(), groups)
+							}
+						};
+						let position = row.iter().position(|&s| s == Spring::Unknown).unwrap();
+						row[position] = Spring::Good;
+						let good = Row::permutations(map, &row, &groups);
+						row[position] = Spring::Bad;
+						let bad = Row::permutations(map, &row, &groups);
+						row[position] = Spring::Unknown;
+						map.insert((row, groups), good + bad);
+						good + bad
+					},
+				};
+				num
+			})
+	}
+
+	fn solve(&self) -> u128
+	{
+		Row::permutations(&mut Default::default(), &self.springs, &self.groups)
+	}
+}
+
+impl std::str::FromStr for Row
+{
+	type Err = Error;
+	fn from_str(line: &str) -> std::result::Result<Self, Error>
+	{
+		let (springs, groups) = line.split_once(' ').ok_or(Error::AocParsing)?;
+		let springs = springs.chars()
+			.map(|spring|
+			{
+				match spring
+				{
+					'.' => Ok(Spring::Good),
+					'#' => Ok(Spring::Bad),
+					'?' => Ok(Spring::Unknown),
+					ch => Err(anyhow!("unknown spring char {:?}", ch)).context(Error::AocParsing),
+				}
+			})
+			.collect::<Result<Vec<_>>>()?;
+		let groups = groups.split(',')
+			.map(|group| Ok(group.parse::<usize>()?))
+			.collect::<Result<Vec<_>>>()?;
+
+		Ok(Self
+		{
+			springs,
+			groups,
+		})
+	}
+}
+
 impl super::super::Solution for Solution
 {
 	fn solve(&self) -> Result<String>
 	{
 		debug!("called with input: {}", self.input);
 
-		let mut stack = self.input.lines()
+		let rows = self.input.lines()
 			.map(|line|
 			{
-				let (map, groups) = line.split_once(' ').ok_or(Error::AocParsing)?;
-				let map = map.to_string();
-				let groups = groups.split(',').map(|s| Ok(s.parse::<usize>()?)).collect::<Result<Vec<_>>>()?;
-				match self.folded
+				if !self.folded
 				{
-					true =>
-					{
-						let map = std::iter::repeat(map)
-							.take(5)
-							.fold(String::new(), |mut acc, s|
-							{
-								if !acc.is_empty()
-								{
-									acc.push('?');
-								}
-								acc.extend(s.chars());
-								acc
-							});
-						let groups = std::iter::repeat(groups)
-							.take(5)
-							.flatten()
-							.collect::<Vec<_>>();
-						Ok((map.into_bytes(), groups))
-					},
-					false => Ok((map.into_bytes(), groups)),
+					Ok(line.to_string())
+				}
+				else
+				{
+					let (map, groups) = line.split_once(' ').ok_or(Error::AocParsing)?;
+					let map = [map].repeat(5).join("?");
+					let groups = [groups].repeat(5).join(",");
+					Ok([map, groups].join(" "))
 				}
 			})
+			.map(|res| res.and_then(|line| Ok(line.parse::<Row>()?)))
 			.collect::<Result<Vec<_>>>()?;
 
-		let result: usize = std::iter::from_fn(||
+		trace!("rows:\n{:#?}", rows);
+
+		let result: u128 = rows.iter()
+			.enumerate()
+			.map(|(idx, row)|
 			{
-				while let Some((mut map, groups)) = stack.pop()
-				{
-					trace!("input: {:?} ({:?})", map, groups);
-					if let Some(idx) = map.iter().position(|&b| b == b'?')
-					{
-						[b'.', b'#'].iter()
-							.for_each(|&ch|
-							{
-								map[idx] = ch;
-								trace!("trying {:?}", map);
-								if validate(map.iter().copied(), &groups) != Some(false)
-								{
-									stack.push((map.clone(), groups.clone()));
-								}
-							});
-					}
-					else
-					{
-						return Some((map, groups));
-					}
-				}
-				None
+				let num = row.solve();
+				debug!("row {}: {}", idx, num);
+				num
 			})
-			.inspect(|(map, groups)| debug!("ok: {:?} ({:?})", String::from_utf8_lossy(map), groups))
-			.count();
+			.sum();
 
 		Ok(format!("{}", result))
 	}
