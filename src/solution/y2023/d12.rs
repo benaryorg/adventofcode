@@ -203,7 +203,7 @@ impl Row
 			.copied()
 			.unwrap_or_else(||
 			{
-				let num = match validate(&row, groups)
+				let num = match validate(row, groups)
 				{
 					Some(false) => 0,
 					Some(true) => 1,
@@ -229,9 +229,9 @@ impl Row
 						};
 						let position = row.iter().position(|&s| s == Spring::Unknown).unwrap();
 						row[position] = Spring::Good;
-						let good = Row::permutations(map, &row, &groups);
+						let good = Row::permutations(map, &row, groups);
 						row[position] = Spring::Bad;
-						let bad = Row::permutations(map, &row, &groups);
+						let bad = Row::permutations(map, &row, groups);
 						row[position] = Spring::Unknown;
 						map.insert((row, groups), good + bad);
 						good + bad
