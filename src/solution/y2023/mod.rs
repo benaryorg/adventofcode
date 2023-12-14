@@ -22,6 +22,7 @@ pub mod d11;
 pub mod d12;
 pub mod d13pt1;
 pub mod d13pt2;
+pub mod d14pt1;
 
 pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 {
@@ -60,6 +61,7 @@ pub fn parsers<'a>() -> Vec<Box<dyn super::InputParser<'a>>>
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d12::Solution::part2(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d13pt1::Solution::new(input.expect("empty input received")))))),
 		Some(InputType::UrlInput(Box::new(|input| Box::new(d13pt2::Solution::new(input.expect("empty input received")))))),
+		Some(InputType::UrlInput(Box::new(|input| Box::new(d14pt1::Solution::new(input.expect("empty input received")))))),
 	];
 
 	days.into_iter()
