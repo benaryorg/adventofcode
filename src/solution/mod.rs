@@ -40,6 +40,14 @@ pub trait InputParser<'a>
 				.env("ADVENTOFCODE_SESSION")
 				.hide_env_values(true)
 				)
+				.arg
+				( clap::Arg::new("file")
+				.short('f')
+				.long("file")
+				.help("read input from file")
+				.allow_hyphen_values(true)
+				.required(false)
+				)
 		}
 		else
 		{

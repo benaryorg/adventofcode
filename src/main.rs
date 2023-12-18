@@ -42,21 +42,34 @@ fn main() -> Result<()>
 	let (command, command_matches) = matches.subcommand().expect("cannot fail due to SubCommandRequiredElseHelp");
 
 	let command = subcommands.get(command).unwrap();
-	let input = command.input_url()
-		.map(|url| -> Result<String>
+	let input = command_matches.get_one::<String>("file")
+		.map(|file|
 		{
-			let timer = std::time::Instant::now();
-			let cookie = command_matches.get_one::<String>("cookie").expect("cookie required but not passed");
-			let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE, format!("session={}", cookie).parse().unwrap())].iter().cloned().collect();
-			let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
-			let response = http.get(url).send()?;
-			if !response.status().is_success()
-			{
-				bail!(Error::HttpError);
-			}
-			println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
+			println!("using input file {:?}", file);
+			let mut s = String::new();
+			use std::io::Read;
+			let mut file = std::fs::File::open(file)?;
+			file.read_to_string(&mut s)?;
+			Ok(s)
+		})
+		.or_else(||
+		{
+			command.input_url()
+				.map(|url| -> Result<String>
+				{
+					let timer = std::time::Instant::now();
+					let cookie = command_matches.get_one::<String>("cookie").expect("cookie required but not passed");
+					let headers: reqwest::header::HeaderMap = [(reqwest::header::COOKIE, format!("session={}", cookie).parse().unwrap())].iter().cloned().collect();
+					let http = reqwest::blocking::Client::builder().default_headers(headers).build()?;
+					let response = http.get(url).send()?;
+					if !response.status().is_success()
+					{
+						bail!(Error::HttpError);
+					}
+					println!("fetched in {:.3}s", timer.elapsed().as_secs_f64());
 
-			Ok(response.text()?)
+					Ok(response.text()?)
+				})
 		})
 		.transpose()?;
 	
