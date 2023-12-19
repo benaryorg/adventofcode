@@ -21,14 +21,14 @@ use crate::error::*;
 ///     1224686865563\n\
 ///     2546548887735\n\
 ///     4322674655533";
-/// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "102");
+/// assert_eq!(Solution::with_min_max(1, 3, input.to_string()).solve().unwrap(), "102");
 /// ```
 ///
 /// Part 2:
 ///
 /// Does not actually work at this time.
 ///
-/// ```no_run
+/// ```
 /// # use adventofcode::solution::{ y2023::d17::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "\
@@ -45,35 +45,51 @@ use crate::error::*;
 ///     1224686865563\n\
 ///     2546548887735\n\
 ///     4322674655533";
-/// assert_eq!(Solution::part2(input.to_string()).solve().unwrap(), "94");
+/// assert_eq!(Solution::with_min_max(4, 10, input.to_string()).solve().unwrap(), "94");
 /// ```
 pub struct Solution
 {
 	input: String,
-	part: Part,
+	min: usize,
+	max: usize,
 }
 
 impl Solution
 {
-	pub fn part1(input: String) -> Self
+	pub fn with_min_max(min: usize, max: usize, input: String) -> Self
 	{
-		Self { part: Part::One, input, }
+		Self { min, max, input, }
 	}
-
-	pub fn part2(input: String) -> Self
-	{
-		Self { part: Part::Two, input, }
-	}
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum Part
-{
-	One,
-	Two,
 }
 
 type Position = (usize, usize);
+
+#[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq)]
+enum Orientation
+{
+	Horizontal,
+	Vertical,
+}
+
+impl Orientation
+{
+	fn invert(&self) -> Orientation
+	{
+		match &self
+		{
+			Orientation::Horizontal => Orientation::Vertical,
+			Orientation::Vertical => Orientation::Horizontal,
+		}
+	}
+
+	fn slice() -> &'static [Orientation]
+	{
+		&[
+			Orientation::Vertical,
+			Orientation::Horizontal,
+		]
+	}
+}
 
 #[derive(Debug, Clone, Copy, PartialOrd, Ord, PartialEq, Eq)]
 enum Direction
@@ -106,6 +122,15 @@ impl Direction
 			Direction::Left,
 			Direction::Up,
 		]
+	}
+
+	fn orientation(&self) -> Orientation
+	{
+		match &self
+		{
+			Direction::Up | Direction::Down => Orientation::Vertical,
+			Direction::Left | Direction::Right => Orientation::Horizontal,
+		}
 	}
 
 	fn left(&self) -> Direction
@@ -165,22 +190,25 @@ impl std::ops::Add<Direction> for Position
 
 fn calculate(field: &[&[usize]], min_turn: usize, max_turn: usize) -> (usize, Vec<Direction>)
 {
-	let mut memo = std::collections::BTreeMap::<(Position, (Direction, usize)), (usize, Vec<Direction>)>::new();
+	let mut memo = std::collections::BTreeMap::<(Position, Orientation), (usize, Vec<Direction>)>::new();
 
-	memo.extend(Direction::slice().iter().flat_map(|&dir| (min_turn..max_turn).map(move |count| (dir, count))).map(|(dir, count)| (((field.len() - 1, field.len() - 1), (dir, count)), (0, Vec::new()))));
+	memo.extend(Orientation::slice().iter().map(|&o| (((field.len() - 1, field.len() - 1), o), (0, Vec::new()))));
 
 	loop
 	{
 		let mut changed = false;
 		for pos in (0..field.len()).rev().flat_map(move |x| (0..field.len()).rev().map(move |y| (x, y)))
 		{
-			for &idir in Direction::slice().iter()
+			for &odir in Direction::slice().iter()
 			{
-				for odir in [idir, idir.left(), idir.right()]
+				'distances: for distance in min_turn..=max_turn
 				{
-					for icounter in min_turn..=max_turn
+					trace!("going from {:?} {:?} for {} steps", pos, odir, distance);
+					let mut npos = pos;
+					let mut cost = 0;
+					for _ in 0..distance
 					{
-						if let Some((npos, val)) = (pos + odir)
+						if let Some((p, val)) = (npos + odir)
 							.and_then(|(x, y)|
 							{
 								let row = field.get(y)?;
@@ -188,56 +216,42 @@ fn calculate(field: &[&[usize]], min_turn: usize, max_turn: usize) -> (usize, Ve
 								Some(((x, y), val))
 							})
 						{
-							let bound = if idir == odir
-							{
-								if icounter == 0
-								{
-									continue;
-								}
-								else
-								{
-									icounter - 1
-								}
-							}
-							else
-							{
-								if icounter >= max_turn - min_turn
-								{
-									continue;
-								}
-								else
-								{
-									max_turn - 1
-								}
-							};
-							let entry = if let Some((dist, dirs)) = memo.get(&(npos, (odir, icounter)))
-							{
-								let dirs = dirs.iter().copied().chain([odir]).collect();
-								Some((*dist + val, dirs))
-							}
-							else
-							{
-								None
-							};
-							if let Some(entry) = entry
-							{
-								memo.entry((pos, (idir, bound)))
-									.and_modify(|data|
-									{
-										if entry.0 < data.0
-										{
-											changed = true;
-											*data = entry.clone();
-										}
-									})
-									.or_insert_with(||
-									{
-										
-										changed = true;
-										entry
-									});
-							}
+							npos = p;
+							cost += val;
 						}
+						else
+						{
+							continue 'distances;
+						}
+					}
+					let entry = if let Some((dist, dirs)) = memo.get(&(npos, odir.orientation().invert()))
+					{
+						let dirs = dirs.iter().copied().chain(std::iter::repeat(odir).take(distance)).collect::<Vec<_>>();
+						Some((*dist + cost, dirs))
+					}
+					else
+					{
+						None
+					};
+					trace!("going from {:?} {:?} for {} steps to {:?} for {} at {:?}", pos, odir, distance, npos, cost, entry);
+					if let Some(entry) = entry
+					{
+						memo.entry((pos, odir.orientation()))
+							.and_modify(|data|
+							{
+								if entry.0 < data.0
+								{
+									debug!("changing {:?} {:?} to {:?} for {} in {} steps", pos, odir, npos, cost, entry.1.len());
+									changed = true;
+									*data = entry.clone();
+								}
+							})
+							.or_insert_with(||
+							{
+								debug!("creating {:?} {:?} to {:?} for {} in {} steps", pos, odir, npos, cost, entry.1.len());
+								changed = true;
+								entry
+							});
 					}
 				}
 			}
@@ -250,9 +264,8 @@ fn calculate(field: &[&[usize]], min_turn: usize, max_turn: usize) -> (usize, Ve
 		debug!("has changed (len: {})", memo.len());
 	}
 
-	Direction::slice().iter()
-		.flat_map(|&dir| ((min_turn+1)..=max_turn).map(move |count| (dir, count)))
-		.filter_map(|(dir, count)| memo.get(&((0, 0), (dir, count))))
+	Orientation::slice().iter()
+		.filter_map(|&orientation| memo.get(&((0, 0), orientation)))
 		.min_by_key(|(dist, _)| dist)
 		.cloned()
 		.unwrap()
@@ -280,13 +293,9 @@ impl super::super::Solution for Solution
 			.map(|row| row.as_slice())
 			.collect::<Vec<_>>();
 
-		let path = match self.part
-		{
-			Part::One => calculate(field, 0, 3),
-			Part::Two => calculate(field, 5, 10),
-		};
-
+		let path = calculate(field, self.min, self.max);
 		debug!("taking path with length {}: {:?}", path.0, path.1);
+
 		let mut sum = 0;
 		let steps = path.1.iter()
 			.rev()
