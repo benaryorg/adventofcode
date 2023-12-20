@@ -72,7 +72,7 @@ enum Module<'a>
 	Conjunction
 	{
 		target: Vec<&'a String>,
-		state: std::collections::HashMap<&'a String, bool>,
+		state: std::collections::BTreeMap<&'a String, bool>,
 	},
 }
 
@@ -145,6 +145,25 @@ impl<'a> Module<'a>
 			},
 		}
 	}
+
+	fn bits_mut(&mut self) -> Vec<&mut bool>
+	{
+		match self
+		{
+			Module::Broadcast { .. } =>
+			{
+				Vec::new()
+			},
+			Module::FlipFlop { ref mut state, .. } =>
+			{
+				vec![state]
+			},
+			Module::Conjunction { ref mut state, .. } =>
+			{
+				state.values_mut().collect()
+			},
+		}
+	}
 }
 
 impl<'a> From<(ModuleType, Vec<&'a String>, Vec<&'a String>)> for Module<'a>
@@ -171,20 +190,13 @@ impl<'a> From<(ModuleType, Vec<&'a String>, Vec<&'a String>)> for Module<'a>
 	}
 }
 
-fn frequency(_modules: &std::collections::HashMap<&String, Module>, _name: &String) -> usize
+fn simulate(modules: &mut std::collections::BTreeMap<&String, Module>) -> Vec<(String, bool, String)>
 {
-	todo!()
-}
-
-fn simulate(modules: &mut std::collections::HashMap<&String, Module>) -> (usize, usize)
-{
-	let mut high = 0;
-	let mut low = 0;
-
 	let broadcaster = "broadcaster".to_string();
 	let button = "button".to_string();
 
 	let mut queue = std::collections::VecDeque::new();
+	let mut out = Vec::new();
 
 	queue.push_back((broadcaster, false, button));
 
@@ -192,14 +204,6 @@ fn simulate(modules: &mut std::collections::HashMap<&String, Module>) -> (usize,
 	{
 		trace!("queue len: {}", queue.len());
 		trace!("processing {} from {:?} to {:?}", pulse, source, target);
-		if pulse
-		{
-			high += 1;
-		}
-		else
-		{
-			low += 1;
-		}
 		if let Some(module) = modules.get_mut(&target)
 		{
 			queue.extend(module
@@ -209,9 +213,10 @@ fn simulate(modules: &mut std::collections::HashMap<&String, Module>) -> (usize,
 				.inspect(|(target, pulse, source)| trace!("injecting {} from {:?} to {:?}", pulse, source, target))
 			);
 		}
+		out.push((target, pulse, source));
 	}
 
-	(high, low)
+	out
 }
 
 impl super::super::Solution for Solution
@@ -255,7 +260,7 @@ impl super::super::Solution for Solution
 				trace!("new module {:?}: {:?}", name, module);
 				(name, module)
 			})
-			.collect::<std::collections::HashMap<&String, Module>>();
+			.collect::<std::collections::BTreeMap<&String, Module>>();
 
 		let result: usize = match self.part
 		{
@@ -267,14 +272,37 @@ impl super::super::Solution for Solution
 						debug!("run {}", i);
 						simulate(&mut modules)
 					})
+					.map(|out|
+					{
+						let high = out.iter().filter(|(_, pulse, _)| *pulse).count();
+						(out.len() - high, high)
+					})
 					.reduce(|(low1, high1), (low2, high2)| (low1 + low2, high1 + high2))
 					.map(|(a, b)| a * b)
 					.unwrap()
 			},
 			AocPart::Two =>
 			{
-				simulate(&mut modules);
-				frequency(&modules, &"rx".to_string())
+				let prerx = modules.iter().find_map(|(n, m)| m.has_target(&"rx".to_string()).then_some(n)).unwrap().to_string();
+				let len = modules.get(&prerx).unwrap().bits().len();
+				let mut freqs = std::collections::BTreeMap::<String, usize>::new();
+				for i in 1..
+				{
+					trace!("run {}", i);
+					simulate(&mut modules)
+						.into_iter()
+						.filter(|(target, pulse, _)| *target == prerx && *pulse)
+						.for_each(|(_, _, source)|
+						{
+							freqs.entry(source.clone()).or_insert(i);
+							debug!("found bit at {}", i);
+						});
+					if freqs.len() == len
+					{
+						break;
+					}
+				}
+				freqs.into_values().reduce(num::integer::lcm).unwrap()
 			},
 		};
 
