@@ -124,7 +124,7 @@ fn recursive_combat(mut player1: Deck, mut player2: Deck) -> (Player,Deck)
 	else
 	{
 		(Player::One,player1)
-	}	
+	}
 }
 
 impl super::super::Solution for Solution

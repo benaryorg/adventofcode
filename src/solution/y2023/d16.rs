@@ -250,7 +250,7 @@ impl super::super::Solution for Solution
 					.unwrap()
 			},
 		};
-		
+
 		Ok(format!("{}", result))
 	}
 }

@@ -199,7 +199,7 @@ impl super::super::Solution for Solution
 					.sum()
 			},
 		};
-		
+
 		Ok(format!("{}", result))
 	}
 }

@@ -130,7 +130,7 @@ impl super::super::Solution for Solution
 			.map(|(idx,num)| (num,idx+1))
 			.take(nums.len() - 1)
 			.collect::<std::collections::BTreeMap<_,_>>();
-		
+
 		let next = *nums.last().ok_or(Error::AocNoSolution)?;
 		let mut turn = nums.len();
 

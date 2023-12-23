@@ -182,7 +182,7 @@ impl super::super::Solution for Solution
 				map
 			});
 
-		
+
 		*character_count.get_mut(input.last().unwrap()).unwrap() += 1;
 
 		debug!("{:?}", character_count);

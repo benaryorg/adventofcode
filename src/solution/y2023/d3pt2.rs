@@ -132,7 +132,7 @@ impl super::super::Solution for Solution
 								trace!("continued number: {:?} at ({}, {})", ch, x, y);
 								None
 							},
-							&ch => 
+							&ch =>
 							{
 								trace!("symbol: {:?} at ({}, {})", ch, x, y);
 								None
@@ -155,7 +155,7 @@ impl super::super::Solution for Solution
 						{
 							'.' => None,
 							'0'..='9' => None,
-							&ch => 
+							&ch =>
 							{
 								debug!("symbol: {:?} at ({}, {})", ch, x, y);
 

@@ -72,7 +72,7 @@ fn main() -> Result<()>
 				})
 		})
 		.transpose()?;
-	
+
 	info!("starting year {} day {} part {}", command.year(), command.day(), command.part());
 	let solution = command.parse(input, command_matches);
 

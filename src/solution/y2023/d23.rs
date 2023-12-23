@@ -1,10 +1,10 @@
 use crate::error::*;
 
 /// This makes some assumptions:
-/// 
+///
 /// - an intersection will never only have one destination (i.e. an intersection will not be a slope itself)
 /// - the only passages that end nowhere are beginning and end
-/// 
+///
 /// # Examples
 ///
 /// Part 1:
@@ -286,7 +286,7 @@ impl super::super::Solution for Solution
 			}
 		}
 		let result: usize = finished.into_iter().map(|(distance, _)| distance).max().unwrap();
-		
+
 		Ok(format!("{}", result))
 	}
 }

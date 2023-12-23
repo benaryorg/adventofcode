@@ -4,7 +4,7 @@ use std::ops::Bound;
 
 /// Whatever you do, do not run this in production.
 /// The "cutout" search algorithm eats memory like no tomorrow (although it *is* fast) and the entire thing only works because I compress the 2D shape down to the essentials (no 10000 long trenches, only the minimum required to retain the shape.
-/// 
+///
 /// # Examples
 ///
 /// Part 1:

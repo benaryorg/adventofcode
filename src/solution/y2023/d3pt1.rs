@@ -142,7 +142,7 @@ impl super::super::Solution for Solution
 								trace!("continued number: {:?} at ({}, {})", ch, x, y);
 								None
 							},
-							&ch => 
+							&ch =>
 							{
 								trace!("symbol: {:?} at ({}, {})", ch, x, y);
 								let neighbours = neighbours(1)
