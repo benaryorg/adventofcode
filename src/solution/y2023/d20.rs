@@ -5,7 +5,7 @@ use crate::error::*;
 /// Part 1:
 ///
 /// ```
-/// # use adventofcode::solution::{ y2023::d20pt1::Solution, Solution as S };
+/// # use adventofcode::solution::{ y2023::d20::Solution, Solution as S };
 /// # env_logger::init();
 /// let input = "\
 ///     broadcaster -> a, b, c\n\
