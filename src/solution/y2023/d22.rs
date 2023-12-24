@@ -2,8 +2,6 @@ use crate::error::*;
 
 /// # Examples
 ///
-/// Part 1:
-///
 /// ```
 /// # use adventofcode::solution::{ y2023::d22::Solution, Solution as S };
 /// # env_logger::init();
