@@ -126,8 +126,8 @@ impl std::str::FromStr for Projectile
 
 		Ok(Projectile
 		{
-			pos: pos.into(),
-			v: v.into(),
+			pos,
+			v,
 		})
 	}
 }
@@ -220,7 +220,7 @@ impl super::super::Solution for Solution
 								{
 									let (x, y) = match p.intersect2(0, 1, h)
 									{
-										Some(foo) => foo,
+										Some(point) => point,
 										None => return false,
 									};
 									//trace!("projectiles intersect at {:?}", (x, y));

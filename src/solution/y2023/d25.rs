@@ -86,7 +86,7 @@ fn walk<T>(dist: &mut std::collections::BTreeMap<T, usize>, connections: &std::c
 
 	if next.is_empty()
 	{
-		return current - 1;
+		current - 1
 	}
 	else
 	{
