@@ -59,16 +59,19 @@ struct Projectile
 #[allow(unused)]
 impl Projectile
 {
+	#[inline]
 	fn get(&self, idx: usize, time: i128) -> i128
 	{
 		self.pos[idx] + time * self.v[idx]
 	}
 
+	#[inline]
 	fn rget(&self, idx: usize, value: i128) -> Option<i128>
 	{
 		(self.v[idx] != 0).then(|| (value - self.pos[idx]) / self.v[idx])
 	}
 
+	#[inline]
 	fn intersect2(&self, idx1: usize, idx2: usize, other: &Self) -> Option<(i128, i128)>
 	{
 		if self.v[idx1] == other.v[idx1] && self.v[idx2] == other.v[idx2]
@@ -88,17 +91,18 @@ impl Projectile
 		Some((x, y))
 	}
 
+	#[inline]
 	fn x(&self, time: i128) -> i128 { self.get(0, time) }
+	#[inline]
 	fn y(&self, time: i128) -> i128 { self.get(1, time) }
+	#[inline]
 	fn z(&self, time: i128) -> i128 { self.get(2, time) }
+	#[inline]
 	fn rx(&self, value: i128) -> Option<i128> { self.rget(0, value) }
+	#[inline]
 	fn ry(&self, value: i128) -> Option<i128> { self.rget(1, value) }
+	#[inline]
 	fn rz(&self, value: i128) -> Option<i128> { self.rget(2, value) }
-
-	fn path_intersection(&self, other: &Self) -> Option<(i128, i128)>
-	{
-		self.intersect2(0, 1, other)
-	}
 }
 
 impl std::str::FromStr for Projectile
@@ -153,7 +157,7 @@ impl super::super::Solution for Solution
 			.filter_map(|(a, b)|
 			{
 				trace!("testing projectile {:?} and {:?}", a, b);
-				let (x, y) = a.path_intersection(b)?;
+				let (x, y) = a.intersect2(0, 1, b)?;
 				trace!("projectiles intersect at {:?}", (x, y));
 				if let Part::One(range) = self.part.clone()
 				{
@@ -177,35 +181,35 @@ impl super::super::Solution for Solution
 			Part::Two =>
 			{
 				let mut result = None;
-				for bits in 1..
+				for bits in 0..14
 				{
-					let low = 1i128 << bits;
-					let high = 1i128 << (bits + 1);
+					let low = 1i16 << bits;
+					let high = 1i16 << (bits + 1);
 					info!("run ({}) {}..{}", bits, low, high);
 					use rayon::prelude::*;
 					result = (low..high)
 						.into_par_iter()
 						.inspect(|max| debug!("max: {}", max))
-						.flat_map(|max| (-max..=max).into_par_iter().map(move |x| (max, x)))
+						.flat_map_iter(|max| (-max..=max).map(move |x| (max, x)))
 						.inspect(|(_, x)| trace!("x: {}", x))
-						.flat_map(|(max, x)| (-max..=max).into_par_iter().map(move |y| (max, x, y)))
+						.flat_map_iter(|(max, x)| (-max..=max).map(move |y| (max, x, y)))
 						.inspect(|(_, x, y)| trace!("x, y: {:?}", (x, y)))
-						.flat_map(|(max, x, y)| (-max..=max).into_par_iter().map(move |z| (max, x, y, z)))
+						.flat_map_iter(|(max, x, y)| (-max..=max).map(move |z| (max, x, y, z)))
 						.filter(|&(max, x, y, z)| x.abs() >= max || y.abs() >= max || z.abs() >= max)
-						.map(|(_, x, y, z)| (x, y, z))
-						.flat_map(|v|
+						.map(|(_, x, y, z)| [x.into(), y.into(), z.into()])
+						.flat_map_iter(|v|
 						{
 							let projectiles = &projectiles;
-							projectiles.par_iter()
+							projectiles.iter()
 								.map(move |p|
 								{
-									let x = p.x(1) - v.0;
-									let y = p.y(1) - v.1;
-									let z = p.z(1) - v.2;
+									let x = p.x(1) - v[0];
+									let y = p.y(1) - v[1];
+									let z = p.z(1) - v[2];
 									Projectile
 									{
 										pos: [x, y, z],
-										v: v.into(),
+										v,
 									}
 								})
 						})
@@ -214,7 +218,7 @@ impl super::super::Solution for Solution
 							projectiles.iter()
 								.all(|h|
 								{
-									let (x, y) = match p.path_intersection(h)
+									let (x, y) = match p.intersect2(0, 1, h)
 									{
 										Some(foo) => foo,
 										None => return false,
