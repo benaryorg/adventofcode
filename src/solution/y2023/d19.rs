@@ -36,9 +36,9 @@ use ::
 ///     {x=2127,m=1623,a=2188,s=1013}";
 /// assert_eq!(Solution::part1(input.to_string()).solve().unwrap(), "19114");
 /// ```
-//
-// Part 2:
-//
+///
+/// Part 2:
+///
 /// ```
 /// # use adventofcode::solution::{ y2023::d19::Solution, Solution as S };
 /// # env_logger::init();
